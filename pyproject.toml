@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "H2O"
+version = "0.1.0"
+requires-python = ">=3.8"
+authors = [
+  {name = "Keyi Feng", email = "fky@umich.edu"}
+]
+description = "Ancient WGD-aware homolog to ortholog trees command-line tool"
+readme = "README.md"
+keywords = ["ancient whole-genome duplication", "WGD", "phylogenetics", "phylogenomics", "gene duplication", "gene tree conflict", "gene tree discordance"]
+classifiers = [
+  "Programming Language :: Python"
+]
+
+[project.scripts]
+h2o = "h2o.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["h2o"]
+
+[project.urls]
+Repository = "https://github.com/fkyeeb/H2O"
