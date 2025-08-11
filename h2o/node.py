@@ -1,4 +1,8 @@
-
+"""
+Node class for tree_reader.py
+Author: Stephen A. Smith
+Modified by KF
+"""
 class Node:
     def __init__(self):
         self.label = ""
@@ -9,6 +13,8 @@ class Node:
         self.data = {}
         self.istip = False
         self.height = 0
+        self.duplication = False
+        self.missing_dup = []
         self.note = ""
     
     def add_child(self,child):
@@ -42,7 +48,7 @@ class Node:
     def iternodes(self,order="preorder"):
         if order.lower() == "preorder":
             yield self
-        for child in self.children:
+        for child in self.children[:]:
             for d in child.iternodes(order):
                 yield d
         if order.lower() == "postorder":
@@ -52,7 +58,11 @@ class Node:
         p = self.parent
         if p != None:
             p.remove_child(self)
-        return p
+        if p.parent != None:
+            p.children[0].length += p.length # KF - adjust branch length
+            p.parent.add_child(p.children[0]) 
+            p.parent.remove_child(p)
+        return p.parent
     
     def get_newick_repr_paint(self,showbl=False):
         ret = ""

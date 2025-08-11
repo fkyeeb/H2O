@@ -6,6 +6,7 @@ from node import Node
 this takes a newick string as instr
 and reads the string and makes the 
 nodes and returns the root node
+Author: Stephen A. Smith
 """
 def read_tree_string(instr):
     root = None
