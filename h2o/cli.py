@@ -1,0 +1,59 @@
+'''
+Entry point of the package, command line interface
+'''
+
+import argparse
+import sys
+
+from h2o import infer_orthology
+
+def infer_ortho_main(args):
+    """
+    direct to infer_orthology
+    """
+    infer_orthology.main(args)
+
+def parse_arguments():
+    """
+    Creates main parser and add subparsers. Parses command line arguments
+    """
+    parser = argparse.ArgumentParser(prog="h2o", description="H2O CLI")
+    subparsers = parser.add_subparsers(title='Subcommands for H2O', help="Subcommands", dest="subcommand")
+
+    # Subcommand: h2o infer_ortho
+    parser_infer_ortho = subparsers.add_parser("infer_ortho", help="Orthology and Gene duplication Inference")
+    parser_infer_ortho.add_argument("-d", "--homolog_tree_dir", type=str, help="Folder containing homolog trees", required=True)
+    
+    # Create mutually exclusive group for outgroup options
+    outgroup_group = parser_infer_ortho.add_mutually_exclusive_group(required=True)
+    outgroup_group.add_argument("-o", "--outgroup_list", type=str, help="List of outgroup taxa, separated by commas, no spaces")
+    outgroup_group.add_argument("-of", "--outgroup_file", type=str, help="File containing the outgroup taxa, each line is a taxon")
+    
+    parser_infer_ortho.add_argument("-t", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
+    parser_infer_ortho.add_argument("-m", "--min_ingroup_taxa", type=int, help="Minimum number of ingroup taxa, default is 3")
+    parser_infer_ortho.add_argument("-out", "--output_folder", type=str, help="Output folder", required=True)
+    parser_infer_ortho.set_defaults(func=infer_ortho_main)
+
+    args = parser.parse_args()
+    return args
+
+def main():
+    """
+    Main function to parse arguments and call the appropriate function
+    """
+    print(" the logo and welcome message goes here")
+
+
+    args = parse_arguments()
+    if args.subcommand is None:
+        print("No subcommand provided. Use -h for help.")
+        sys.exit(1)
+    
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        print(f"Unknown subcommand: {args.subcommand}. Use -h for help.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
