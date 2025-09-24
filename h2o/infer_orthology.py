@@ -7,7 +7,7 @@ and outputs the ortholog trees
 
 from h2o import tree_reader as t
 from h2o.node import Node
-from h2o.utils import get_sister
+from h2o.utils import get_sister, check_folder
 import copy
 import os
 import sys
@@ -249,7 +249,7 @@ def get_orthologs(root):
 
     return ortho_trees
 
-def prune_or_not(tree,min_dup_overlap,output_folder,tree_name,bool):
+def prune_or_not(tree,min_dup_overlap,output_directory,tree_name,bool):
 
     label_duplication_node(tree,min_dup_overlap,bool)
     
@@ -265,7 +265,7 @@ def prune_or_not(tree,min_dup_overlap,output_folder,tree_name,bool):
                 p.remove_child(n)
 
     # print("pruned tree: ", rooted_tree.get_newick_repr(showbl=True), "\n")
-    with open(output_folder + tree_name + "_rooted_pruned.tre","w") as f:
+    with open(output_directory + tree_name + "_rooted_pruned.tre","w") as f:
         f.write(tree.get_newick_repr(showbl=True) + ";\n")
     # sys.exit(0)
     # get orthologs
@@ -274,12 +274,12 @@ def prune_or_not(tree,min_dup_overlap,output_folder,tree_name,bool):
     # print(len(ortho_trees))
     l = len(ortho_trees)
     for i in range(l-1,-1,-1):
-        with open(output_folder + tree_name + "_ortho" + str(l-i) + ".tre","w") as f:
+        with open(output_directory + tree_name + "_ortho" + str(l-i) + ".tre","w") as f:
             string = ortho_trees[i].get_newick_repr(showbl=True) + ";\n"
             # print("ortholog tree ",l-i," : ",string, "\n")
             f.write(string)
 
-def process_trees(tree,outgroup_list,tree_name,output_folder,min_dup_overlap):
+def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap):
     # root tree
 
     # if tree is not rooted, root it arbitrarily first
@@ -303,28 +303,29 @@ def process_trees(tree,outgroup_list,tree_name,output_folder,min_dup_overlap):
 
     if rooted_tree:
         # print("rooted tree",rooted_tree.get_newick_repr(), "\n")
-        with open(output_folder + tree_name + "_rooted.tre","w") as f:
+        with open(output_directory + tree_name + "_rooted.tre","w") as f:
             f.write(rooted_tree.get_newick_repr(showbl=True) + ";\n")
 
         # label duplication node and prune missing taxa
         rooted_tree_2prune = copy.deepcopy(rooted_tree)
 
-        prune_or_not(rooted_tree_2prune,min_dup_overlap,output_folder + "pruned/",tree_name,True)
-        prune_or_not(rooted_tree,min_dup_overlap,output_folder + "no_pruning/",tree_name,False)
+        prune_or_not(rooted_tree_2prune,min_dup_overlap,output_directory + "pruned/",tree_name,True)
+        prune_or_not(rooted_tree,min_dup_overlap,output_directory + "no_pruning/",tree_name,False)
 
 
 def main(args):
     # read tree folder and tree file ending
     tree_folder = args.homolog_tree_dir
+    tree_folder = check_folder(tree_folder)
     if not os.path.exists(tree_folder):
         print("Error: The folder " + tree_folder + " does not exist.")
         sys.exit(2)
     tree_file_ending = args.tree_file_ending
 
     # read outgroup list
-    if args.outgroup_list:
+    if hasattr(args, "outgroup_list"):
         outgroup_list = args.outgroup_list.split(",")
-    elif args.outgroup_file:
+    elif hasattr(args, "outgroup_file"):
         with open(args.outgroup_file,"r") as f:
             outgroup_list = f.read().splitlines()
 
@@ -335,13 +336,14 @@ def main(args):
         min_dup_overlap = 3
 
     # read output folder
-    output_folder = args.output_folder
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    if not os.path.exists(output_folder + "pruned/"):
-        os.makedirs(output_folder + "pruned/")
-    if not os.path.exists(output_folder + "no_pruning/"):
-        os.makedirs(output_folder + "no_pruning/")
+    output_directory = args.output_directory
+    output_directory = check_folder(output_directory)
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    if not os.path.exists(output_directory + "pruned/"):
+        os.makedirs(output_directory + "pruned/")
+    if not os.path.exists(output_directory + "no_pruning/"):
+        os.makedirs(output_directory + "no_pruning/")
 
     # run the script
     print("------------------------------------------------------------\n\n")
@@ -354,9 +356,8 @@ def main(args):
             with open(tree_folder + tree_file,"r") as f:
                 tree = t.read_tree_string(f.readline().strip())
             tree_name = tree_file[:-len(tree_file_ending)]
-            print("Processing tree: " + tree_name + "\n")
-            process_trees(tree,outgroup_list,tree_name,output_folder,min_dup_overlap)
+            process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap)
     
-    print("Output trees are saved in " + output_folder + "\n")
+    print("Output trees are saved in " + output_directory + "\n")
     print("Done with orthology inference at " + time.ctime())
     print("\n------------------------------------------------------------\n\n")

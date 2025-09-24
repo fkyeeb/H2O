@@ -31,7 +31,7 @@ def parse_arguments():
     
     parser_infer_ortho.add_argument("-t", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
     parser_infer_ortho.add_argument("-m", "--min_ingroup_taxa", type=int, help="Minimum number of ingroup taxa, default is 3")
-    parser_infer_ortho.add_argument("-out", "--output_folder", type=str, help="Output folder", required=True)
+    parser_infer_ortho.add_argument("-od", "--output_directory", type=str, help="Output directory", required=True)
     parser_infer_ortho.set_defaults(func=infer_ortho_main)
 
     args = parser.parse_args()
@@ -49,11 +49,7 @@ def main():
         print("No subcommand provided. Use -h for help.")
         sys.exit(1)
     
-    if hasattr(args, 'func'):
-        args.func(args)
-    else:
-        print(f"Unknown subcommand: {args.subcommand}. Use -h for help.")
-        sys.exit(1)
+    args.func(args)
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 import string, sys
-from node import Node
+from h2o.node import Node
 
 
 """
