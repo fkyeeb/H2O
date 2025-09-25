@@ -279,7 +279,7 @@ def prune_or_not(tree,min_dup_overlap,output_directory,tree_name,bool):
             # print("ortholog tree ",l-i," : ",string, "\n")
             f.write(string)
 
-def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap):
+def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,pruning):
     # root tree
 
     # if tree is not rooted, root it arbitrarily first
@@ -309,8 +309,10 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap)
         # label duplication node and prune missing taxa
         rooted_tree_2prune = copy.deepcopy(rooted_tree)
 
-        prune_or_not(rooted_tree_2prune,min_dup_overlap,output_directory + "pruned/",tree_name,True)
-        prune_or_not(rooted_tree,min_dup_overlap,output_directory + "no_pruning/",tree_name,False)
+        if pruning != False:
+            prune_or_not(rooted_tree_2prune,min_dup_overlap,output_directory + "pruned/",tree_name,True)
+        if pruning != True:
+            prune_or_not(rooted_tree,min_dup_overlap,output_directory + "unpruned/",tree_name,False)
 
 
 def main(args):
@@ -334,21 +336,32 @@ def main(args):
         min_dup_overlap = args.min_ingroup_taxa
     else:
         min_dup_overlap = 3
+    
+    # check pruning options
+    if args.just_pruning:
+        pruning = True
+    elif args.no_pruning:
+        pruning = False
+    else: # do both pruning and no pruning
+        pruning = "both"
 
     # read output folder
     output_directory = args.output_directory
     output_directory = check_folder(output_directory)
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    if not os.path.exists(output_directory + "pruned/"):
-        os.makedirs(output_directory + "pruned/")
-    if not os.path.exists(output_directory + "no_pruning/"):
-        os.makedirs(output_directory + "no_pruning/")
+    if pruning != False:
+        if not os.path.exists(output_directory + "pruned/"):
+            os.makedirs(output_directory + "pruned/")
+    if pruning != True:
+        if not os.path.exists(output_directory + "unpruned/"):
+            os.makedirs(output_directory + "unpruned/")
 
     # run the script
     print("------------------------------------------------------------\n\n")
     print(time.ctime() + "\n")
     print("Processing homolog trees\n")
+    start_time = time.time()
 
     for tree_file in os.listdir(tree_folder):
         if tree_file.endswith(tree_file_ending):
@@ -356,8 +369,17 @@ def main(args):
             with open(tree_folder + tree_file,"r") as f:
                 tree = t.read_tree_string(f.readline().strip())
             tree_name = tree_file[:-len(tree_file_ending)]
-            process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap)
+            process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,pruning)
     
     print("Output trees are saved in " + output_directory + "\n")
-    print("Done with orthology inference at " + time.ctime())
+    
+    end_time = time.time()
+    elapsed = end_time - start_time
+    if elapsed < 60:
+        print(f"Done with orthology inference. Total time elapsed: {elapsed:.2f} seconds")
+    else:
+        minutes = int(elapsed // 60)
+        seconds = elapsed % 60
+        print(f"Done with orthology inference. Total time elapsed: {minutes} minutes {seconds:.2f} seconds")
+
     print("\n------------------------------------------------------------\n\n")

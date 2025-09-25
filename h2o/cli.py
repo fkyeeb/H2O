@@ -32,6 +32,8 @@ def parse_arguments():
     parser_infer_ortho.add_argument("-t", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
     parser_infer_ortho.add_argument("-m", "--min_ingroup_taxa", type=int, help="Minimum number of ingroup taxa, default is 3")
     parser_infer_ortho.add_argument("-od", "--output_directory", type=str, help="Output directory", required=True)
+    parser_infer_ortho.add_argument("-p", "--just_pruning", action="store_true", help="Only produce pruned ortholog trees")
+    parser_infer_ortho.add_argument("-np", "--no_pruning", action="store_true", help="Only produce unpruned ortholog trees")
     parser_infer_ortho.set_defaults(func=infer_ortho_main)
 
     args = parser.parse_args()

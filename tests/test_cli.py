@@ -45,8 +45,34 @@ def test_main(monkeypatch):
     cli.main()
 
     assert os.path.exists('tests/test_data/ortholog_trees/dup_rooted.tre')
-    assert os.path.exists('tests/test_data/ortholog_trees/no_pruning/dup_rooted_pruned.tre')
+    assert os.path.exists('tests/test_data/ortholog_trees/unpruned/dup_rooted_pruned.tre')
     assert os.path.exists('tests/test_data/ortholog_trees/pruned/dup_rooted_pruned.tre')
 
     # remove all the output files created by unit test
+    shutil.rmtree('tests/test_data/ortholog_trees')
+
+def test_only_pruning(monkeypatch):
+    """Test pruning options"""
+
+    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-o", "o", "-t", ".tre", "-od", "tests/test_data/ortholog_trees", "-p"]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    cli.main()
+
+    assert os.path.exists('tests/test_data/ortholog_trees/pruned/dup_rooted_pruned.tre')
+    assert not os.path.exists('tests/test_data/ortholog_trees/unpruned/')
+
+    shutil.rmtree('tests/test_data/ortholog_trees')
+
+def test_only_no_pruning(monkeypatch):
+    """Test pruning options"""
+
+    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-o", "o", "-t", ".tre", "-od", "tests/test_data/ortholog_trees", "-np"]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    cli.main()
+
+    assert os.path.exists('tests/test_data/ortholog_trees/unpruned/dup_rooted_pruned.tre')
+    assert not os.path.exists('tests/test_data/ortholog_trees/pruned/')
+    
     shutil.rmtree('tests/test_data/ortholog_trees')
