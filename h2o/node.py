@@ -14,6 +14,7 @@ class Node:
         self.istip = False
         self.height = 0
         self.duplication = False
+        self.cache_label = ""
         self.missing_dup = []
         self.note = ""
     
