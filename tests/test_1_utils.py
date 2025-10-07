@@ -4,27 +4,27 @@ import pytest
 import os
 import shutil
 
-def test_check_folder():
-    """Test the check_folder function, see if it only adds a trailing slash when there is none"""
+def test_check_path():
+    """Test the check_path function, see if it only adds a trailing slash when there is none"""
 
-    assert utils.check_folder("tests/test_data/") == "tests/test_data/"
-    assert utils.check_folder("tests/test_data") == "tests/test_data/"
-    assert utils.check_folder(None,default_folder="tests/test_data") == "tests/test_data/"
+    assert utils.check_path("tests/test_data/") == "tests/test_data/"
+    assert utils.check_path("tests/test_data") == "tests/test_data/"
+    assert utils.check_path(None,default_path="tests/test_data") == "tests/test_data/"
 
-def test_check_folder_error(capsys):
-    """Test the check_folder function, see if it only adds a trailing slash when there is none"""
+def test_check_path_error(capsys):
+    """Test the check_path function, see if it only adds a trailing slash when there is none"""
 
     with pytest.raises(SystemExit) as exc_info:
-        utils.check_folder("tests/test_error",error_if_not_exists=True)
+        utils.check_path("tests/test_error",error_if_not_exists=True)
     
     assert exc_info.value.code == 2
     captured = capsys.readouterr()
-    assert "Error: The folder tests/test_error/ does not exist." in captured.out
+    assert "Error: tests/test_error/ does not exist." in captured.out
 
-def test_check_folder_create():
-    """Test the check_folder function, see if it creates a folder if it does not exist"""
+def test_check_path_create():
+    """Test the check_path function, see if it creates a folder if it does not exist"""
     
-    utils.check_folder("tests/test_create",create_if_not_exists=True)
+    utils.check_path("tests/test_create",create_if_not_exists=True)
     assert os.path.exists("tests/test_create")
 
     shutil.rmtree("tests/test_create")

@@ -3,11 +3,13 @@ This is the script for the subcommand extract_wgd_trees
 it extracts and concatenates homolog trees that shows gene duplications at WGD events
 """
 from h2o.utils import (
-    check_folder,
-    run_shell_command
+    check_path,
+    run_shell_command,
+    transform_elapsed_time
 )
 import os
 import sys
+import time
 from pathlib import Path
 
 def cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning):
@@ -37,19 +39,19 @@ def main(args):
         print("Error: WGD node numbers must be integers.")
         sys.exit(2)
 
-    processed_tree_folder = check_folder(args.processed_tree_dir,error_if_not_exists=True)
+    processed_tree_folder = check_path(args.processed_tree_dir,error_if_not_exists=True)
     
     default_dup_dir = str(Path(processed_tree_folder).parent) + "/other_output/"
-    duplication_counts_file_directory = check_folder(args.duplication_counts_file_directory,default_folder=default_dup_dir,error_if_not_exists=True)
+    duplication_counts_dir = check_path(args.duplication_counts_dir,default_path=default_dup_dir,error_if_not_exists=True)
 
-    if os.path.exists(duplication_counts_file_directory + "duplication_counts.tsv"):
-        duplication_counts_file = duplication_counts_file_directory + "duplication_counts.tsv"
-    if not os.path.exists(duplication_counts_file):
-        print("Error: No duplication counts file found.")
-        sys.exit(2)
+    duplication_counts_file = check_path(duplication_counts_dir + "duplication_counts.tsv",is_folder=False,error_if_not_exists=True)
     
-    output_directory = check_folder(args.output_directory,default_folder=duplication_counts_file_directory,create_if_not_exists=True)
+    output_directory = check_path(args.output_directory,default_path=duplication_counts_dir,create_if_not_exists=True)
     
+    print("------------------------------------------------------------\n")
+    print(time.ctime() + "\n")
+    start_time = time.time()
+
     wgd_trees = []
     with open(duplication_counts_file, "r") as f:
         f.readline()
@@ -72,3 +74,9 @@ def main(args):
     if not unpruned and not pruned:
         print("Error: No processed ortholog tree folder found.")
         sys.exit(2)
+    
+    end_time = time.time()
+    elapsed = transform_elapsed_time(start_time,end_time)
+    print(f"Done with extracting WGD trees. Total time elapsed: {elapsed}")
+
+    print("\n------------------------------------------------------------\n\n")

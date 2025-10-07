@@ -5,19 +5,6 @@ import shutil
 
 from h2o import cli
 
-def test_parse_arguments_infer_ortho(monkeypatch):
-    """Test the parse_arguments function for the infer_ortho command. See if arguments are parsed correctly."""
-
-    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-of", "tests/test_data/outgroups.txt", "-t", ".tre", "-m", "3", "-od", "tests/test_data/ortholog_trees"]
-    monkeypatch.setattr(sys, "argv", test_args)
-    
-    args = cli.parse_arguments()
-    assert args.homolog_tree_dir == "tests/test_data/homolog_trees"
-    assert args.outgroup_file == "tests/test_data/outgroups.txt"
-    assert args.tree_file_ending == ".tre"
-    assert args.min_ingroup_taxa == 3
-    assert args.output_directory == "tests/test_data/ortholog_trees"
-
 def test_no_subcommand(monkeypatch, capsys):
     """Test errors for no subcommand."""
 
@@ -36,10 +23,10 @@ def test_no_subcommand(monkeypatch, capsys):
     assert "No subcommand provided. Use -h for help." in captured.out
 
 
-def test_main(monkeypatch):
+def test_infer_ortho_main(monkeypatch):
     """Test the main function for the infer_ortho command. See if infer_orthology.py is being ran correctly."""
 
-    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-o", "o", "-t", ".tre"]
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre"]
     monkeypatch.setattr(sys, "argv", test_args)
     
     cli.main()
@@ -51,10 +38,10 @@ def test_main(monkeypatch):
     # remove all the output files created by unit test
     shutil.rmtree('tests/test_data/processed_trees')
 
-def test_only_pruning(monkeypatch):
+def test_infer_ortho_only_pruning(monkeypatch):
     """Test pruning options"""
 
-    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-o", "o", "-t", ".tre", "-od", "tests/test_data/processed_trees", "-p"]
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre", "-od", "tests/test_data/processed_trees", "-p"]
     monkeypatch.setattr(sys, "argv", test_args)
     
     cli.main()
@@ -64,10 +51,10 @@ def test_only_pruning(monkeypatch):
 
     shutil.rmtree('tests/test_data/processed_trees')
 
-def test_only_no_pruning(monkeypatch):
+def test_infer_ortho_only_no_pruning(monkeypatch):
     """Test pruning options"""
 
-    test_args = ["h2o", "infer_ortho", "-d", "tests/test_data/homolog_trees", "-o", "o", "-t", ".tre", "-np"]
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre", "-np"]
     monkeypatch.setattr(sys, "argv", test_args)
     
     cli.main()

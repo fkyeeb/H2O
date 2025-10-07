@@ -1,7 +1,39 @@
-from h2o import infer_orthology
+from h2o import infer_orthology, cli
 import argparse
 import shutil
 import os
+import sys
+
+def test_parse_arguments(monkeypatch):
+    """Test the parse_arguments function for the infer_ortho command. See if arguments are parsed correctly."""
+
+    # Store the original infer_orthology.main function
+    original_main = infer_orthology.main
+    
+    # Create a mock to capture the arguments passed to main()
+    captured_args = None
+    
+    def mock_main(args):
+        nonlocal captured_args
+        captured_args = args
+        # Don't actually run the main function, just capture args
+    
+    # Replace infer_orthology.main with our mock
+    monkeypatch.setattr(infer_orthology, 'main', mock_main)
+
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-of", "tests/test_data/outgroups.txt", "-e", ".tre", "-m", "3", "-od", "tests/test_data/ortholog_trees"]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    args = cli.parse_arguments()
+    args.func(args)
+    assert captured_args.homolog_tree_dir == "tests/test_data/homolog_trees"
+    assert captured_args.outgroup_file == "tests/test_data/outgroups.txt"
+    assert captured_args.tree_file_ending == ".tre"
+    assert captured_args.min_ingroup_taxa == 3
+    assert captured_args.output_directory == "tests/test_data/ortholog_trees"
+
+    # Restore the original function
+    monkeypatch.setattr(infer_orthology, 'main', original_main)
 
 def test_infer_ortho():
     """Test the infer_ortho function, see if it runs correctly"""

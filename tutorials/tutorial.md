@@ -13,6 +13,12 @@
   - [3.1 Input](#31-input)
   - [3.2 How to run](#32-how-to-run)
   - [3.3 Output](#33-output)
+- [4. Inferring gene loss after WGD events - `h2o gene_loss`](#4-inferring-gene-loss-after-wgd-events---h2o-gene_loss)
+  - [4.1 Input](#41-input)
+  - [4.2 How to run](#42-how-to-run)
+  - [4.3 Output](#43-output)
+- [5. Extracting `bp` conflict result for ploting - `h2o bp2pie`](#5-extracting-bp-conflict-result-for-ploting---h2o-bp2pie)
+- [extract constraint tree](#extract-constraint-tree)
 
 # impletement no ortholog production? and some all_in_1 options
 
@@ -49,10 +55,10 @@ You can also find this information by using `h2o infer_ortho -h`
 
 | Option  | Long Option Name | Required | Description
 | ------------- | ------------- | ------------- | ------------- |
-| `-d` | `--homolog_tree_dir` | Yes | Folder containing homolog trees
+| `-t` | `--homolog_tree_dir` | Yes | Folder containing homolog trees
 | `-o` | `--outgroup_list` | Yes | List of outgroup taxa, separated by commas, no spaces (mutually exclusive with `-of`)
 | `-of` | `--outgroup_file` | Yes | File containing the outgroup taxa, each line is a taxon (mutually exclusive with `-o`)
-| `-t` | `--tree_file_ending` | Yes | File ending of the homolog trees
+| `-e` | `--tree_file_ending` | Yes | File ending of the homolog trees
 | `-od` | `--output_directory` | No | Output directory, default is creating a `processed_trees/` directory in the parent directory of `homolog_tree_dir` 
 | `-m` | `--min_ingroup_taxa` | No | Minimum number of ingroup taxa, default is 3
 | `-p` | `--just_pruning` | No | Only produce pruned ortholog trees
@@ -63,14 +69,14 @@ You can also find this information by using `h2o infer_ortho -h`
 The folders may vary based on your current directory and where you downloaded the dataset. Before running `h2o`, I do not know whether *pruning* is going to be helpful to for my dataset, so I decided to run the default setting, which is producing both the *pruned* and *unpruned* orthologs for comparison. To do this, I do not flag `-p` or `-np`. 
 
 ```console
-$ h2o infer_ortho -d example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -t .subtree
+$ h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree
 ```
 If the output directory does not exist, `h2o` will create the folder. Because all output trees are going to be created inside the output directory, this directory, if exists, is recommended to be empty before running the command.
 
 If I want to run `infer_ortho` again to only produce pruned ortholog trees, I will add `-p` to the command. To only unpruned ortholog trees, I will add `-np`. For example, **if you are only looking for some fast ortholog trees without _pruning_**, do:
 
 ```console
-$ h2o infer_ortho -d example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -t .subtree -np
+$ h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree -np
 ```
 
 ## 1.3 Output
@@ -119,14 +125,14 @@ You can also find this information by using `h2o map_dupl -h`
 
 | Option  | Long Option Name | Required | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| `-d` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
-| `-t` | `--species_tree_file` | Yes | Species tree file |
+| `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
+| `-s` | `--species_tree_file` | Yes | Species tree file |
 | `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir` |
 
 ### 2.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o map_dupl -d example_data/processed_trees -t example_data/ERIC_ASTRAL_rooted_unpruned.tre
+$ h2o map_dupl -t example_data/processed_trees -s example_data/ERIC_ASTRAL_rooted_unpruned.tre
 ```
 
 ## 2.3 Output
@@ -166,23 +172,70 @@ If one of the `pruned/` or `unpruned/`directories doesn't exist in `processed_tr
 
 | Option | Long Option Name | Required | Description |
 |--------|-------------|----------|-------------|
-| `-d` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
+| `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
 | `-n` | `--wgd_nodes` | Yes | List of WGD node numbers, separated by commas, no spaces |
-| `-f` | `--duplication_counts_file` | No | Duplication counts file, is `other_output/duplication_counts.tsv` from `map_dupl` output* |
+| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output` directory in the parent directory of `processed_tree_dir`* |
 | `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir`  |
 
-**If the directory `duplication_counts.tsv` is currently in is not `other_output/`, please specify the location of `duplication_counts.tsv` with `-f`*
+**If the directory `duplication_counts.tsv` is currently not in `other_output/`, please specify the location of the folder with `-f`.*
 
 ### 3.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o extract_wgd_trees -d example_data/processed_trees -n idk
+$ h2o extract_wgd_trees -t example_data/processed_trees -n idk
 ```
 
 ## 3.3 Output
-Unless specified otherwise, `other_output/` is the default output folder. Inside the folder, there will be:
+Unless specified otherwise, `other_output/` is the default output folder. Inside the folder, these new files will be created:
 - `cat_unpruned_wgd_trees.sh` and `cat_pruned_wgd_trees.sh` - bash script to concatenate the *unpruned* and *pruned* ortholog trees into one file
   - `extract_wgd_trees` already ran this script for you. If needed, to run these script again, do `bash cat_unpruned_wgd_trees.sh` or `bash cat_pruned_wgd_trees.sh`
 - `ASTRAL_in_unpruned_wgd_trees.tre` and `ASTRAL_in_pruned_wgd_trees.tre` - concatenated ortholog tree files
   - One only contains *unpruned* orthologs that are from homolog trees that shows gene duplications at the node of WGD events; the other one only contains those that are *pruned*.
   - These tree files can be used directly as ASTRAL inputs.
+
+# 4. Inferring gene loss after WGD events - `h2o gene_loss`
+
+This subcommand records and maps gene loss after known putative WGD events. 
+
+## 4.1 Input
+This command requires the *unpruned* `*_rooted_processed.tre` from `infer_ortho` command, `duplication_counts.tsv` and `summary_tree_numbered.tre` from `map_dupl` command. It also requires known putative WGD events.
+
+## 4.2 How to run
+
+### 4.2.1 Command Options <!-- omit in toc -->
+
+| Option | Long Option Name | Required | Description |
+|--------|-------------|----------|-------------|
+| `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
+| `-n` | `--wgd_nodes` | Yes | List of WGD node numbers, separated by commas, no spaces |
+| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output` directory in the parent directory of `processed_tree_dir`* |
+| `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir`  |
+
+**If the directory `duplication_counts.tsv` and `summary_tree_numbered.tre` are currently not in `other_output/`, please specify the location of the folder with `-f`.*
+
+### 4.2.2 Running the command with example dataset <!-- omit in toc -->
+
+```console
+$ h2o gene_loss -t example_data/processed_trees -n idk
+```
+
+## 4.3 Output
+
+Unless specified otherwise, `other_output/` is the default output folder. Inside the folder, these new files will be created:
+- `gene_loss_counts.tsv` - gene loss data after given WGD events. The tab-delimited file will look something like this:
+
+  | tree | dupl_clade_count | wgd_node | gene_loss_nodes | gene_loss_tips |
+  |------|---|---|---|---|
+  | cluster1 | 1 | 3 | 4 | tip1 |
+  | cluster1 | 2 | 3 | 5 | tip2,tip4 |
+  | cluster2 | 1 | 3 | 4 |  |
+  | ... |
+
+  For example, the 3rd line of this example file means: it's data for tree <u>cluster1</u>, it's the <u>second duplicated clade</u> in this tree for <u>WGD event at node 3</u> of the specis tree. For this duplicated clade, there is a <u>gene loss at node 5</u> of the species tree, there is also single tip gene loss for <u>tip2</u> and <u>tip4</u>.
+- `gene_loss_counts.tre` - gene loss data summarized on the summary species tree. There are two trees inside this newick tree file. The first tree has node numbers as node labels; the second tree has the number of gene loss events of all homolog trees with the given WGD gene duplication at each node as node labels.
+
+# 5. Extracting `bp` conflict result for ploting - `h2o bp2pie`
+
+if summary tree provided, has to be the same tree topology with bp tree
+
+# extract constraint tree

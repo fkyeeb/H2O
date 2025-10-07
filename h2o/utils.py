@@ -14,34 +14,36 @@ def get_sister(node):
         if child != node:
             return child
 
-def check_folder(folder,default_folder=None,error_if_not_exists=False,create_if_not_exists=False):
+def check_path(path,is_folder=True,default_path=None,error_if_not_exists=False,create_if_not_exists=False):
     """
-    check if folder has a trailing slash
+    check given path
     
-    :param folder: folder path
+    :param path: path
+    :param is_folder: whether the path is a folder
     :param error_if_not_exists: error if folder does not exist
     :param create_if_not_exists: create folder if it does not exist
-    :param default_folder: default folder if folder is not provided
+    :param default_path: default path if path is not provided
     """
     
-    if folder == None:
-        folder = default_folder
+    if path == None:
+        path = default_path
     
-    if folder[-1] != "/":
-        folder = folder + "/"
+    if is_folder:
+        if path[-1] != "/":
+            path = path + "/"
     
     if error_if_not_exists:
-        if not os.path.exists(folder):
-            print("Error: The folder " + folder + " does not exist.")
+        if not os.path.exists(path):
+            print("Error: " + path + " does not exist.")
             sys.exit(2)
     
     if create_if_not_exists:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        if not os.path.exists(path):
+            os.makedirs(path)
     
-    return folder
+    return path
 
-def precompute_leaf_names_number_nodes(tree,label=False):
+def precompute_leaf_names_number_nodes(tree,use_label=False,label=False):
     """
     Pre-compute leaf names for all nodes and number all nodes
     node number is stored in node.cache_label
@@ -54,9 +56,12 @@ def precompute_leaf_names_number_nodes(tree,label=False):
     num = 0
     for node in tree.iternodes():
         if not node.istip:
-            node.cache_label = str(num)
-            if label:
-                node.label = node.cache_label
+            if not use_label:
+                node.cache_label = str(num)
+                if label:
+                    node.label = node.cache_label
+            else:
+                node.cache_label = node.label
             leaf_cache[node.cache_label] = set(node.lvsnms())
             num += 1
     return leaf_cache
@@ -91,3 +96,18 @@ def run_shell_command(cmd):
     elapsed = transform_elapsed_time(start_time,end_time)
     print(f"\nCommand finished in {elapsed}\n")
     print("------------------------------------------------------------\n")
+
+def get_deepest_dup_parent(node):
+    """
+    This function takes a node and returns its deepest duplication parent.
+    If node has no parent, return node
+    """
+    current_node = node
+
+    while current_node.parent != None:
+        if current_node.parent.label != "D":
+            return current_node
+        else:
+            current_node = current_node.parent
+
+    return current_node

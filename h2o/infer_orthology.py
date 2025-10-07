@@ -9,7 +9,7 @@ from h2o import tree_reader as t
 from h2o.node import Node
 from h2o.utils import (
     get_sister,
-    check_folder,
+    check_path,
     precompute_leaf_names_number_nodes,
     transform_elapsed_time
 )
@@ -316,7 +316,7 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,
 
 def main(args):
     # read tree folder and tree file ending
-    tree_folder = check_folder(args.homolog_tree_dir,error_if_not_exists=True)
+    tree_folder = check_path(args.homolog_tree_dir,error_if_not_exists=True)
 
     tree_file_ending = args.tree_file_ending
 
@@ -346,7 +346,7 @@ def main(args):
 
     # read output folder
     default_output_folder = str(Path(tree_folder).parent) + "/processed_trees/"
-    output_directory = check_folder(args.output_directory,default_folder=default_output_folder,create_if_not_exists=True)
+    output_directory = check_path(args.output_directory,default_path=default_output_folder,create_if_not_exists=True)
 
     if pruning != False:
         if not os.path.exists(output_directory + "pruned/"):
@@ -356,7 +356,7 @@ def main(args):
             os.makedirs(output_directory + "unpruned/")
 
     # run the script
-    print("------------------------------------------------------------\n\n")
+    print("------------------------------------------------------------\n")
     print(time.ctime() + "\n")
     print("Processing homolog trees\n")
     start_time = time.time()

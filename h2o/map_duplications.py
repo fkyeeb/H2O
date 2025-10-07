@@ -1,34 +1,19 @@
 """
 This is the script for the subcommand map_dupl
 it maps gene duplications to species tree
-and output the results in a tsv file
+and output the results in a tsv and a tree file
 """
 
 from h2o import tree_reader as t
 from h2o.utils import (
-    check_folder,
+    check_path,
     precompute_leaf_names_number_nodes,
-    transform_elapsed_time
+    transform_elapsed_time,
+    get_deepest_dup_parent
 )
 import os
-import sys
 import time
 from pathlib import Path
-
-def get_deepest_dup_parent(node):
-    """
-    This function takes a node and returns its deepest duplication parent.
-    If node has no parent, return node
-    """
-    current_node = node
-
-    while current_node.parent != None:
-        if current_node.parent.label != "D":
-            return current_node
-        else:
-            current_node = current_node.parent
-
-    return current_node
 
 def number_all_nodes(tree,output_folder):
     """
@@ -115,21 +100,18 @@ def main(args):
     """
     Main function to map duplications
     """
-    species_tree_file = args.species_tree_file
-    if not os.path.exists(species_tree_file):
-        print("Error: The species tree file " + species_tree_file + " does not exist.")
-        sys.exit(2)
+    species_tree_file = check_path(args.species_tree_file,is_folder=False,error_if_not_exists=True)
 
-    processed_tree_folder = check_folder(args.processed_tree_dir) + "unpruned/"
-    processed_tree_folder = check_folder(processed_tree_folder,error_if_not_exists=True)
+    processed_tree_folder = check_path(args.processed_tree_dir) + "unpruned/"
+    processed_tree_folder = check_path(processed_tree_folder,error_if_not_exists=True)
 
     default_output_folder = str(Path(processed_tree_folder).parent.parent) + "/other_output/"
-    output_folder = check_folder(args.output_directory,default_folder=default_output_folder,create_if_not_exists=True)
+    output_folder = check_path(args.output_directory,default_path=default_output_folder,create_if_not_exists=True)
 
     with open(species_tree_file,"r") as f:
         sp_tree =  t.read_tree_string(f.readline().strip())
 
-    print("------------------------------------------------------------\n\n")
+    print("------------------------------------------------------------\n")
     print(time.ctime() + "\n")
     start_time = time.time()
 

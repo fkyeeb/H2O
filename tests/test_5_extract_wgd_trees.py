@@ -1,8 +1,37 @@
-from h2o import extract_wgd_trees
+from h2o import extract_wgd_trees,cli
 import argparse
 import os
 import shutil
 import pytest
+import sys
+
+def test_parse_arguments(monkeypatch):
+    """Test the parse_arguments function for the extract_wgd_trees command. See if arguments are parsed correctly."""
+
+    original_main = extract_wgd_trees.main
+
+    captured_args = None
+    
+    def mock_main(args):
+        nonlocal captured_args
+        captured_args = args
+        # Don't actually run the main function, just capture args
+    
+    monkeypatch.setattr(extract_wgd_trees, 'main', mock_main)
+
+    test_args = ["h2o", "extract_wgd_trees", "-t", "tests/test_data/processed_trees", "-n", "3", "-od", "tests/test_data/extract_wgd_trees_output","-d", "tests/test_data/duplication_counts"]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    args = cli.parse_arguments()
+    args.func(args)
+
+    assert captured_args.processed_tree_dir == "tests/test_data/processed_trees"
+    assert captured_args.wgd_nodes == "3"
+    assert captured_args.output_directory == "tests/test_data/extract_wgd_trees_output"
+    assert captured_args.duplication_counts_dir == "tests/test_data/duplication_counts"
+
+    monkeypatch.setattr(extract_wgd_trees, 'main', original_main)
+
 
 def test_extract_wgd_trees():
     """Test the extract_wgd_trees function"""
@@ -12,7 +41,7 @@ def test_extract_wgd_trees():
         wgd_nodes="3",
         duplication_counts_file=None,
         output_directory=None,
-        duplication_counts_file_directory=None
+        duplication_counts_dir=None
     )
     extract_wgd_trees.main(args)
 
@@ -32,7 +61,7 @@ def test_wgd_node_error(capsys):
         wgd_nodes="3.4",
         duplication_counts_file=None,
         output_directory=None,
-        duplication_counts_file_directory=None
+        duplication_counts_dir=None
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
@@ -49,7 +78,7 @@ def test_wgd_node_out_of_range(capsys):
         wgd_nodes="8",
         duplication_counts_file=None,
         output_directory=None,
-        duplication_counts_file_directory=None
+        duplication_counts_dir=None
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
@@ -68,7 +97,7 @@ def test_no_pruned_tree_folder(capsys):
         wgd_nodes="3",
         duplication_counts_file=None,
         output_directory=None,
-        duplication_counts_file_directory=None
+        duplication_counts_dir=None
     )
     extract_wgd_trees.main(args)
 
@@ -85,7 +114,7 @@ def test_no_ortholog_tree_folder(capsys):
         wgd_nodes="3",
         duplication_counts_file=None,
         output_directory=None,
-        duplication_counts_file_directory=None
+        duplication_counts_dir=None
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
