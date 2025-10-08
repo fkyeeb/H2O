@@ -21,7 +21,9 @@
   - [5.1 Input](#51-input)
   - [5.2 How to run](#52-how-to-run)
   - [5.3 Output](#53-output)
-- [extract constraint tree](#extract-constraint-tree)
+- [6. Extracting constraint tree - `h2o constraint`](#6-extracting-constraint-tree---h2o-constraint)
+  - [6.1 input](#61-input)
+  - [6.3 Output](#63-output)
 
 # impletement no ortholog production? and some all_in_1 options
 
@@ -292,4 +294,38 @@ Unless specified otherwise, the current directory is the default output folder. 
 $ gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 ```
 
-# extract constraint tree
+# 6. Extracting constraint tree - `h2o constraint`
+`h2o` removes a lot of data from phylogenomic datasets. Although it offers a topology with more support for relationships right after WGDs, it can lead to less support for more embedded and well-defined clades. To resolve this dilemma, we offer an option in `h2o` to extract the "wanted" relationships from a summary tree to use as constraint for phylogenetic analysis.
+
+## 6.1 input
+This command requires a summary tree file and a list of nodes or tips to keep in the constraint tree. 
+
+### 6.2.1 Command Options <!-- omit in toc -->
+
+| Option | Long Option Name | Required | Description |
+|--------|-------------|----------|-------------|
+| `-s` | `--summary_tree_file` | Yes | Summary tree file*, provide if branch length different from bp tree |
+| `-od` | `--output_directory` | No | Output directory, default is the current directory  |
+| `-n` | `--nodes` | Yes | List** of nodes to keep, node labels separated by commas, no spaces (mutually exclusive with `-t`) |
+| `-t` | `--tips_file` | Yes | File*** containing the tips to keep, each line is a tip (mutually exclusive with `-n`) |
+
+**The summary tree file needs to have unique node labels for each node, e.g. in `summary_tree_numbered.tre`. Only the first tree will be read as summary tree. Other trees will be ingnored.*
+
+***Only one tip is going to be kept for each node in the constraint tree. This one tip is going to be selected by random. If there are single tips that you would like to keep aside from the list of nodes, you can list the tip name with the node numbers, e.g. 2,3,tip_name or 6,tip_name,20*
+
+****Only the tips listed in this file are going to show up in the constraint tree.*
+
+### 6.2.2 Running the command with example dataset <!-- omit in toc -->
+
+```console
+$ h2o constraint -s summary_tree_numbered.tre -n idk
+```
+["141","132","115","103","77","101","87","2"]
+["Cornales_Nyssaceae_Nyssa_sinensis","Ericales_Balsaminaceae_Impatiens_hawkeri","Ericales_Ericaceae_Gaultheria_nummularioides","Ericales_Lecythidaceae_Lecythis_congestiflora","Ericales_Polemoniaceae_Linanthus_californicus","Ericales_Primulaceae_Primula_veris","Ericales_Sapotaceae_Sarcosperma_laurinum","Ericales_Sapotaceae_Manilkara_sapota","Ericales_Ebenaceae_Diospyros_lotus"]
+
+## 6.3 Output
+Unless specified otherwise, the current directory is the default output folder. Inside the folder, this new file will be created:
+- `constraint_tree.tre` - the constraint tree, example usage with ASTRAL:
+```console
+$ astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.tre
+```

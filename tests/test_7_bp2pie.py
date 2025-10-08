@@ -1,8 +1,6 @@
 from h2o import bp2pie,cli
 import argparse
-import os
 import shutil
-import pytest
 import sys
 
 def test_parse_arguments(monkeypatch):
@@ -75,4 +73,4 @@ def test_bp2pie_2():
     with open("tests/test_data/other_output/gokstad_pie.tre","r") as f:
         assert f.readline() == "(o:0.0,((e:0.0,f:0.0)[&pie=0,2]:0.0,((a:0.0,b:0.0)[&pie=2,2]:0.0,(c:0.0,d:0.0)[&pie=1,1]:0.0)[&pie=4,0]:0.0)[&pie=1,3]:0.0)0:0.0;\n"
     
-    shutil.rmtree("tests/test_data/other_output/")
+    # shutil.rmtree("tests/test_data/other_output/")

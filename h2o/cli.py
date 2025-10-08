@@ -10,7 +10,8 @@ from h2o import (
     map_duplications,
     extract_wgd_trees,
     map_gene_loss,
-    bp2pie
+    bp2pie,
+    extract_constraint_tree
 )
 
 def infer_ortho_main(args):
@@ -42,6 +43,12 @@ def bp2pie_main(args):
     direct to bp2pie
     """
     bp2pie.main(args)
+
+def extract_constraint_tree_main(args):
+    """
+    direct to extract_constraint_tree
+    """
+    extract_constraint_tree.main(args)
 
 def parse_arguments():
     """
@@ -96,6 +103,18 @@ def parse_arguments():
     parser_bp2pie.add_argument("-od", "--output_directory", type=str, help="Output directory, default is the current directory")
     parser_bp2pie.add_argument("-p", "--pie_option", action="store_true", help="Flag to include unsupported counts in the gokstad pie tree")
     parser_bp2pie.set_defaults(func=bp2pie_main)
+
+    # Subcommand: h2o constraint
+    parser_extract_constraint_tree = subparsers.add_parser("constraint", help="extract constraint tree")
+    parser_extract_constraint_tree.add_argument("-s", "--summary_tree_file", type=str, help="Summary tree file", required=True)
+    parser_extract_constraint_tree.add_argument("-od", "--output_directory", type=str, help="Output directory, default is the current directory")
+
+    # Create mutually exclusive group for nodes and tips options
+    nodes_tips_group = parser_extract_constraint_tree.add_mutually_exclusive_group(required=True)
+    nodes_tips_group.add_argument("-n", "--nodes", type=str, help="List of nodes to keep, node numbers separated by commas, no spaces")
+    nodes_tips_group.add_argument("-t", "--tips_file", type=str, help="File containing the tips to keep, each line is a tip")
+    
+    parser_extract_constraint_tree.set_defaults(func=extract_constraint_tree_main)
 
     args = parser.parse_args()
     return args
