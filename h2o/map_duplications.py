@@ -89,7 +89,6 @@ def map_dup(dup_tree,node_numbers,sp_tree_leaf_cache,tsv_file,tree_file):
             node_numbers[best_match] += 1
     
     # Write to file using provided file handle
-    print(tree_file)
     tsv_file.write(tree_file.split("_rooted_processed.tre")[0] + "\t")
     for node in node_numbers:
         tsv_file.write(str(node_numbers[node]-previous_count[node]) + "\t")

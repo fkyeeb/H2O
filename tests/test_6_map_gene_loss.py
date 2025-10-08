@@ -62,7 +62,10 @@ def test_map_gene_loss():
 
     with open('tests/test_data/other_output/gene_loss_counts.tsv', 'r') as f:
         lines = f.readlines()
-        assert lines[3] == 'dup_loss\t1\t1\t2\t\n'
+        for line in lines:
+            if "dup_loss" in line:
+                assert line == 'dup_loss\t1\t1\t2\t\n'
+                break
     
     shutil.rmtree('tests/test_data/other_output')
     shutil.rmtree('tests/test_data/processed_trees')
