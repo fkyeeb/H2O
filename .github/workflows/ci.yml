@@ -35,7 +35,7 @@ jobs:
         git config --local user.name "$actor"
     - name: Test
       run: |
-        pytest --cov=h2o tests/ # specify your package & test paths
+        pytest --cov=h2o tests/ --cov-branch --cov-report=xml # specify your package & test paths
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
