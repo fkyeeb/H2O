@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  actor: "41898282+github-actions[bot]"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov # add pytest-cov plugin
+        if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+        fi
+    - name: Configure git
+      run: |
+        git config --local user.email "${actor}@users.noreply.github.com"
+        git config --local user.name "$actor"
+    - name: Test
+      run: |
+        pytest --cov=h2o tests/ # specify your package & test paths
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}

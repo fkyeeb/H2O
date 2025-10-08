@@ -91,10 +91,10 @@ def parse_arguments():
 
     # Subcommand: h2o bp2pie
     parser_bp2pie = subparsers.add_parser("bp2pie", help="extract bp conflict result for ploting")
-    parser_bp2pie.add_argument("-f", "--bp_output_file", type=str, help="bp output file", required=True)
-    parser_bp2pie.add_argument("-s", "--summary_tree_file", type=str, help="Summary tree file, provide if different from bp tree")
+    parser_bp2pie.add_argument("-f", "--bp_output_file", type=str, help="bp output file, `-tv` has to be flagged when running bp", required=True)
+    parser_bp2pie.add_argument("-s", "--summary_tree_file", type=str, help="Summary tree file, provide if branch length different from bp tree")
     parser_bp2pie.add_argument("-od", "--output_directory", type=str, help="Output directory, default is the current directory")
-    parser_bp2pie.add_argument("-p", "--pie_option", action="store_true", help="Flag to include unsupported numbers in the gokstad pie tree")
+    parser_bp2pie.add_argument("-p", "--pie_option", action="store_true", help="Flag to include unsupported counts in the gokstad pie tree")
     parser_bp2pie.set_defaults(func=bp2pie_main)
 
     args = parser.parse_args()

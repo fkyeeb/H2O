@@ -18,6 +18,9 @@
   - [4.2 How to run](#42-how-to-run)
   - [4.3 Output](#43-output)
 - [5. Extracting `bp` conflict result for ploting - `h2o bp2pie`](#5-extracting-bp-conflict-result-for-ploting---h2o-bp2pie)
+  - [5.1 Input](#51-input)
+  - [5.2 How to run](#52-how-to-run)
+  - [5.3 Output](#53-output)
 - [extract constraint tree](#extract-constraint-tree)
 
 # impletement no ortholog production? and some all_in_1 options
@@ -236,6 +239,57 @@ Unless specified otherwise, `other_output/` is the default output folder. Inside
 
 # 5. Extracting `bp` conflict result for ploting - `h2o bp2pie`
 
-if summary tree provided, has to be the same tree topology with bp tree
+`h2o` is built to reduce gene tree conflict induced by WGDs, then evaluating gene tree conflict throughout the process is important. We tend to use [bellerophon](https://git.sr.ht/~hms/bellerophon) (`bp`) to infer gene tree conflict, so we implemented a subcommand in `h2o` to take `bp` output directly and digest it into files that is easy to plot in R and with[`gokstad`](https://git.sr.ht/~hms/gokstad).
+
+## 5.1 Input
+`bp` output file is required. To produce the appropriate `bp` result file, `-tv` has to be flagged in the command:
+
+```console
+$ bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL_in_unpruned.tre -tv > bp_output_unpruned.txt
+```
+
+We also recommend:
+- flag `-v` for more verbose results if you would like to see if there is a dominant conflicting topology
+- flag `-scut` for support cutoff if you do not want to consider relationships with lower support
+- flag `-rng` if you have too many trees and would like to "parallelize" `bp` by hand. `bp` can be a bit slow with a great number of trees and does not have parallel options. `h2o bp2pie` do not support summarizing multiple `bp` output for now, but can be implemented in the future.
+
+## 5.2 How to run
+
+### 5.2.1 Command Options <!-- omit in toc -->
+
+| Option | Long Option Name | Required | Description |
+|--------|-------------|----------|-------------|
+| `-f` | `--bp_output_file` | Yes | bp output file, `-tv` has to be flagged when running bp |
+| `-s` | `--summary_tree_file` | No | Summary tree file*, provide if branch length different from bp tree |
+| `-p` | `--pie_option` | No | Flag to include unsupported** counts in the gokstad pie tree |
+| `-od` | `--output_directory` | No | Output directory, default is the current directory  |
+
+**In case users want to plot `bp` results with a different branch length, you can provide a tree with the same topology but different branch length, compared to the tree you ran `bp` with.*
+
+***In `bp` results, unsupported means that the tree provided does not contain information about this specific bipart/relationship in the summary tree. It is usually due to missing taxa and having a large number of unsupported trees for each node is normal in large genomic datasets. However, as most folks will interpret unsupported as low support at first glance, the default of `bp2pie` does not include unsupported counts for `gokstad` plotting.*
+
+### 5.2.2 Running the command with example dataset <!-- omit in toc -->
+
+```console
+$ h2o bp2pie -f bp_output_unpruned.txt
+```
+
+## 5.3 Output
+
+Unless specified otherwise, the current directory is the default output folder. Inside the folder, these new files will be created:
+- `bp_output.tre` - Counts for conflict, concordance, and unsupported as node labels on each tree. This is part of `bp` output. We provide it as a way for visualization and data exploration.
+- `bp_data.tsv` - Counts for conflict, concordance, and unsupported listed with corresponding node number in the summary tree. This is for plotting pie charts in the tree with R. The tab-delimited file will look something like this:
+
+  | node_number | conflict | concord | unsupported |
+  |------|---|---|---|
+  | 1 | 1 | 3 | 0 |
+  | 2 | 0 | 2 | 2 |
+  | 3 | 4 | 0 | 0 |
+  | ... |
+-  `bp_summary_tree_numbered.tre` - Node number as node label, to correpond with `bp_data.tsv`. The default tree is the summary tree used in `bp` analysis. If a summary tree with different branch length is provided with `-s`, then this corresponding tree with `bp_data.tsv` will be the provided tree.
+-  `gokstad_pie.tre` - The input tree for `gokstad` plotting, cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
+```console
+$ gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
+```
 
 # extract constraint tree
