@@ -1,6 +1,4 @@
-import string, sys
 from h2o.node import Node
-
 
 """
 this takes a newick string as instr

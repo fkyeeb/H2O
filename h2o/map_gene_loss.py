@@ -11,7 +11,6 @@ from h2o.utils import (
     get_deepest_dup_parent
 )
 from h2o import tree_reader as t
-import os
 import sys
 import time
 from pathlib import Path

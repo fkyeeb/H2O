@@ -2,7 +2,6 @@
 extract bp conflict result for ploting
 '''
 
-import re
 from h2o import tree_reader as t
 from h2o.utils import check_path,precompute_leaf_names_number_nodes
 
