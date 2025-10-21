@@ -168,7 +168,7 @@ def prune_selected_taxa(node,selected_taxa):
     # make sure no tip is skipped
     [n.prune() for n in node2prune]
 
-def check_prune_dup(node,min_dup_overlap,bool,leaf_cache):
+def check_prune_dup(node,min_dupl_overlap,bool,leaf_cache):
     """
     This function checks if the node is a duplication node.
     And also saves any taxa that are not duplicated.
@@ -193,18 +193,18 @@ def check_prune_dup(node,min_dup_overlap,bool,leaf_cache):
 
     if len(common) > 0:
         # prune overlap taxa if they are less than the minimum duplication overlap
-        if len(common) < min_dup_overlap:
+        if len(common) < min_dupl_overlap:
             prune_selected_taxa(child2prune,common)
             return
         # recognize duplication node if the overlap is big enough
-        elif len(common) >= min_dup_overlap:
+        elif len(common) >= min_dupl_overlap:
             node.duplication = True
             node.label = "D"
             if bool:
                 node.missing_dup = child1 ^ child2
                 prune_selected_taxa(node,node.missing_dup)
 
-def label_duplication_node(tree,min_dup_overlap,bool,leaf_cache):
+def label_duplication_node(tree,min_dupl_overlap,bool,leaf_cache):
     """
     This function takes a node and checks if it is a duplication node if it is not a tip.
     It will prune the duplications that are smaller than the specified minimum clade size.
@@ -213,7 +213,7 @@ def label_duplication_node(tree,min_dup_overlap,bool,leaf_cache):
     for node in tree.iternodes():
         if not node.istip:
             # pruning happens at the same time as the duplication check
-            check_prune_dup(node,min_dup_overlap,bool,leaf_cache)
+            check_prune_dup(node,min_dupl_overlap,bool,leaf_cache)
         
 def get_orthologs(root,leaf_cache):
     """
@@ -238,9 +238,9 @@ def get_orthologs(root,leaf_cache):
 
     return ortho_trees
 
-def prune_or_not(tree,min_dup_overlap,output_directory,tree_name,bool,leaf_cache):
+def prune_or_not(tree,min_dupl_overlap,output_directory,tree_name,bool,leaf_cache):
 
-    label_duplication_node(tree,min_dup_overlap,bool,leaf_cache)
+    label_duplication_node(tree,min_dupl_overlap,bool,leaf_cache)
     
     # remove node when there is only one child left
     if len(tree.children) == 1:
@@ -273,7 +273,7 @@ def prune_or_not(tree,min_dup_overlap,output_directory,tree_name,bool,leaf_cache
         with open(filename, "w") as f:
             f.write(content)
 
-def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,pruning):
+def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_overlap,pruning):
     # root tree
 
     # if tree is not rooted, root it arbitrarily first
@@ -309,9 +309,9 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,
         rooted_tree_2prune = copy.deepcopy(rooted_tree)
 
         if pruning != False:
-            prune_or_not(rooted_tree_2prune,min_dup_overlap,output_directory + "pruned/",tree_name,True,rooted_leaf_cache)
+            prune_or_not(rooted_tree_2prune,min_dupl_overlap,output_directory + "pruned/",tree_name,True,rooted_leaf_cache)
         if pruning != True:
-            prune_or_not(rooted_tree,min_dup_overlap,output_directory + "unpruned/",tree_name,False,rooted_leaf_cache)
+            prune_or_not(rooted_tree,min_dupl_overlap,output_directory + "unpruned/",tree_name,False,rooted_leaf_cache)
 
 
 def main(args):
@@ -330,11 +330,11 @@ def main(args):
         with open(args.outgroup_file,"r") as f:
             outgroup_list = f.read().splitlines()
 
-    # read min ingroup taxa
-    if args.min_ingroup_taxa:
-        min_dup_overlap = args.min_ingroup_taxa
+    # read min dupl overlap
+    if args.min_dupl_overlap:
+        min_dupl_overlap = args.min_dupl_overlap
     else:
-        min_dup_overlap = 3
+        min_dupl_overlap = 3
     
     # check pruning options
     if args.just_pruning:
@@ -369,7 +369,7 @@ def main(args):
         with open(tree_folder + tree_file,"r") as f:
             tree = t.read_tree_string(f.readline().strip())
         tree_name = tree_file[:-len(tree_file_ending)]
-        process_trees(tree,outgroup_list,tree_name,output_directory,min_dup_overlap,pruning)
+        process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_overlap,pruning)
     
     print("Output trees are saved in " + output_directory + "\n")
 

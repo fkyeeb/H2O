@@ -33,7 +33,7 @@
 `h2o` is designed for datasets that have putative WGDs, but is also compatible with datasets without putative ancient whole-genome duplications (WGD). If your dataset is not susceptible to gene tree conflict potentially caused by WGDs, the orthology inference command [`h2o infer_ortho`](#1-orthology-inference---h2o-infer_ortho) can produce cleaned ortholog trees very fast and easy. If your dataset is susceptible to gene tree conflict potentially caused by WGDs, I recommend going through the whole tutorial and try all the commands.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove tips that have lost one of the gene copy from WGD - subsequently refer as *pruning*  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
+1. Remove tips that have lost one of the gene copy from WGD - subsequently refer as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
 2. Select ortholog trees that are from homolog trees that show the gene duplication from WGD, and only use them for species tree inference - implemented in [`extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplication-at-wgd-events---h2o-extract_wgd_trees)
 
 Most of the subcommands are not independent of each other. They usually require some results from the step before it. **To run through the whole pipeline, please go through the tutorial in order.**
@@ -44,7 +44,17 @@ Carruthers, T., D. J. P. Gonçalves, P. Li, A. S. Chanderbali, C. W. Dick, P. W.
 
 # 1. Orthology Inference - `h2o infer_ortho`
 
-This is the most important step for `h2o`. It takes homolog trees as input and output cleaned ortholog trees for species tree inference. Output includes both ortholog trees experienced *pruning* and the same set of tree without *pruning*.
+This is the most important subcommand for `h2o`. It takes homolog trees as input and output cleaned ortholog trees for species tree inference. Output includes both ortholog trees experienced *pruning* and the same set of tree without *pruning*.
+
+The detailed steps of this subcommand:
+1. Only process homolog trees with monophyletic outgroups. Other trees skipped.
+2. Label nodes with gene duplications. If the tip overlap between two child clades is less than `min_dupl_overlap` (default is 3), the overlaping tips are removed. If the tip overlap between two child clades of a node is more or equal to `min_dupl_overlap`, the node is labeled as a duplication node (node label "D" in newick tree). These trees are the processed homolog trees.
+3. If *pruning* (defined in Overview) is needed, the processed homolog trees go through *pruning*.
+4. The processed homolog trees are splitted at the duplication nodes into ortholog trees.
+
+Examples for `infer_ortho`:
+
+![svg](tutorials/infer_ortho.svg)
 
 ## 1.1 Input
 
@@ -65,7 +75,7 @@ You can also find this information by using `h2o infer_ortho -h`
 | `-of` | `--outgroup_file` | Yes | File containing the outgroup taxa, each line is a taxon (mutually exclusive with `-o`)
 | `-e` | `--tree_file_ending` | Yes | File ending of the homolog trees
 | `-od` | `--output_directory` | No | Output directory, default is creating a `processed_trees/` directory in the parent directory of `homolog_tree_dir` 
-| `-m` | `--min_ingroup_taxa` | No | Minimum number of ingroup taxa, default is 3
+| `-m` | `--min_dupl_overlap` | No | Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 3
 | `-p` | `--just_pruning` | No | Only produce pruned ortholog trees
 | `-np` | `--no_pruning` | No | Only produce unpruned ortholog trees
 
@@ -91,7 +101,7 @@ For the default setting, there will be some output and 2 folders write to the ou
 - `unpruned/` - contains processed* homolog trees and *pruned* ortholog trees
 - `pruned/` - contains processed* homolog trees and *unpruned* ortholog trees
 
-*_processing is a necessary tree cleaning process, involving labeling duplication nodes and removing tip duplications that are less than `min_ingroup_taxa`._
+*_processing is a necessary tree cleaning process, involving labeling duplication nodes and removing tip duplications that are less than `min_dupl_overlap`. The processed homolog trees in `pruned/` folder also went through pruning._
 
 If the input tree file name is `cluster1.subtree` and `.subtree` is entered as the `tree_file_ending`:
 - Rooted homolog trees  - `cluster1_rooted.tre`
@@ -244,7 +254,7 @@ Unless specified otherwise, `other_output/` is the default output folder. Inside
 `h2o` is built to reduce gene tree conflict induced by WGDs, then evaluating gene tree conflict throughout the process is important. We tend to use [bellerophon](https://git.sr.ht/~hms/bellerophon) (`bp`) to infer gene tree conflict, so we implemented a subcommand in `h2o` to take `bp` output directly and digest it into files that is easy to plot in R and with[`gokstad`](https://git.sr.ht/~hms/gokstad).
 
 ## 5.1 Input
-`bp` output file is required. To produce the appropriate `bp` result file, `-tv` has to be flagged in the command:
+`bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**:
 
 ```console
 $ bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL_in_unpruned.tre -tv > bp_output_unpruned.txt
@@ -253,7 +263,8 @@ $ bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL
 We also recommend:
 - flag `-v` for more verbose results if you would like to see if there is a dominant conflicting topology
 - flag `-scut` for support cutoff if you do not want to consider relationships with lower support
-- flag `-rng` if you have too many trees and would like to "parallelize" `bp` by hand. `bp` can be a bit slow with a great number of trees and does not have parallel options. `h2o bp2pie` do not support summarizing multiple `bp` output for now, but can be implemented in the future.
+- flag `-w` if you have a big ortholog tree dataset. It is a way to parallelize the analyses and the number of workers can be higher the number of thread. "The optimum number? You should experiment." quote Stephen Smith.
+- flag `-rng` if it is still very slow with `-w` flagged. `-rng` allows you to do more "parallelization" by hand. You can split it into several `bp` runs and the run time will be significantly reduced. `h2o bp2pie` do not support summarizing multiple `bp` output for now, but can be implemented in the future.
 
 ## 5.2 How to run
 

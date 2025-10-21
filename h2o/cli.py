@@ -67,7 +67,7 @@ def parse_arguments():
     outgroup_group.add_argument("-of", "--outgroup_file", type=str, help="File containing the outgroup taxa, each line is a taxon")
     
     parser_infer_ortho.add_argument("-e", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
-    parser_infer_ortho.add_argument("-m", "--min_ingroup_taxa", type=int, help="Minimum number of ingroup taxa, default is 3")
+    parser_infer_ortho.add_argument("-m", "--min_dupl_overlap", type=int, help="Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 3")
     parser_infer_ortho.add_argument("-od", "--output_directory", type=str, help="Output directory")
     parser_infer_ortho.add_argument("-p", "--just_pruning", action="store_true", help="Only produce pruned ortholog trees")
     parser_infer_ortho.add_argument("-np", "--no_pruning", action="store_true", help="Only produce unpruned ortholog trees")

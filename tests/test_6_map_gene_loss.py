@@ -38,7 +38,7 @@ def test_map_gene_loss():
         homolog_tree_dir="tests/test_data/homolog_trees",
         outgroup_list="o",
         tree_file_ending=".tre",
-        min_ingroup_taxa=3,
+        min_dupl_overlap=3,
         output_directory=None,
         no_pruning=False,
         just_pruning=False

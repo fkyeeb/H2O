@@ -29,7 +29,7 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.homolog_tree_dir == "tests/test_data/homolog_trees"
     assert captured_args.outgroup_file == "tests/test_data/outgroups.txt"
     assert captured_args.tree_file_ending == ".tre"
-    assert captured_args.min_ingroup_taxa == 3
+    assert captured_args.min_dupl_overlap == 3
     assert captured_args.output_directory == "tests/test_data/ortholog_trees"
 
     # Restore the original function
@@ -42,7 +42,7 @@ def test_infer_ortho():
         homolog_tree_dir="tests/test_data/homolog_trees",
         outgroup_list="o",
         tree_file_ending=".tre",
-        min_ingroup_taxa=3,
+        min_dupl_overlap=3,
         output_directory=None,
         no_pruning=False,
         just_pruning=False
@@ -70,7 +70,7 @@ def test_infer_ortho_rooting(capsys):
         homolog_tree_dir="tests/test_data/homolog_trees_rooting",
         outgroup_file="tests/test_data/outgroups.txt",
         tree_file_ending=".tre",
-        min_ingroup_taxa=3,
+        min_dupl_overlap=3,
         output_directory="tests/test_data/processed_trees_rooting",
         no_pruning=False,
         just_pruning=False
