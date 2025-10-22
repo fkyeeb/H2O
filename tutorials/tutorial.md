@@ -33,7 +33,7 @@
 `h2o` is designed for datasets that have putative WGDs, but is also compatible with datasets without putative ancient whole-genome duplications (WGD). If your dataset is not susceptible to gene tree conflict potentially caused by WGDs, the orthology inference command [`h2o infer_ortho`](#1-orthology-inference---h2o-infer_ortho) can produce cleaned ortholog trees very fast and easy. If your dataset is susceptible to gene tree conflict potentially caused by WGDs, I recommend going through the whole tutorial and try all the commands.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove tips that have lost one of the gene copy from WGD - subsequently refer as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
+1. Remove tips that no longer retain both gene copies generated from WGD - subsequently refer as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
 2. Select ortholog trees that are from homolog trees that show the gene duplication from WGD, and only use them for species tree inference - implemented in [`extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplication-at-wgd-events---h2o-extract_wgd_trees)
 
 Most of the subcommands are not independent of each other. They usually require some results from the step before it. **To run through the whole pipeline, please go through the tutorial in order.**
@@ -44,17 +44,21 @@ Carruthers, T., D. J. P. Gonçalves, P. Li, A. S. Chanderbali, C. W. Dick, P. W.
 
 # 1. Orthology Inference - `h2o infer_ortho`
 
-This is the most important subcommand for `h2o`. It takes homolog trees as input and output cleaned ortholog trees for species tree inference. Output includes both ortholog trees experienced *pruning* and the same set of tree without *pruning*.
+This is the most important subcommand for `h2o`. It takes homolog trees as input and output cleaned ortholog trees for species tree inference. Output includes both ortholog trees experienced *pruning* (defined in Overview) and the same set of tree without *pruning*.
 
 The detailed steps of this subcommand:
 1. Only process homolog trees with monophyletic outgroups. Other trees skipped.
 2. Label nodes with gene duplications. If the tip overlap between two child clades is less than `min_dupl_overlap` (default is 3), the overlaping tips are removed. If the tip overlap between two child clades of a node is more or equal to `min_dupl_overlap`, the node is labeled as a duplication node (node label "D" in newick tree). These trees are the processed homolog trees.
-3. If *pruning* (defined in Overview) is needed, the processed homolog trees go through *pruning*.
+3. If *pruning* is needed, the processed homolog trees go through *pruning*.
 4. The processed homolog trees are splitted at the duplication nodes into ortholog trees.
+
+Although it is similar to ortholog inference methods in Yang and Smith (2014), it is not the same with any of the 4 methods. `h2o infer_ortho` requires monophyletic outgroups in the tree and does not keep any tree without outgroups.
 
 Examples for `infer_ortho`:
 
-![svg](tutorials/infer_ortho.svg)
+![svg](infer_ortho.svg)
+
+Yang, Y., and Smith, S. A. (2014). Orthology inference in nonmodel organisms using transcriptomes and low-coverage genomes: improving accuracy and matrix occupancy for phylogenomics. *Molecular biology and evolution*, 31(11), 3081-3092.
 
 ## 1.1 Input
 
@@ -84,14 +88,14 @@ You can also find this information by using `h2o infer_ortho -h`
 The folders may vary based on your current directory and where you downloaded the dataset. Before running `h2o`, I do not know whether *pruning* is going to be helpful to for my dataset, so I decided to run the default setting, which is producing both the *pruned* and *unpruned* orthologs for comparison. To do this, I do not flag `-p` or `-np`. 
 
 ```console
-$ h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree
+h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree
 ```
 If the output directory does not exist, `h2o` will create the folder. Because all output trees are going to be created inside the output directory, this directory, if exists, is recommended to be empty before running the command.
 
 If I want to run `infer_ortho` again to only produce pruned ortholog trees, I will add `-p` to the command. To only unpruned ortholog trees, I will add `-np`. For example, **if you are only looking for some fast ortholog trees without _pruning_**, do:
 
 ```console
-$ h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree -np
+h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree -np
 ```
 
 ## 1.3 Output
@@ -119,16 +123,16 @@ This command requires the *unpruned* `*_rooted_processed.tre` from the previous 
 
 I provided a rooted summary tree computed from the *unpruned* full Ericales dataset from Carruthers et al. (2024) in `example_data/`. A summary tree made from the subset dataset can be different from the one I provided. To compute the summary tree for the example dataset, you can do the following commands, which uses two other packages:
 ```console
-$ cat example_data/ERIC_ortholog/unpruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_unpruned.tre
-$ cat example_data/ERIC_ortholog/pruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_pruned.tre
+cat example_data/ERIC_ortholog/unpruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_unpruned.tre
+cat example_data/ERIC_ortholog/pruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_pruned.tre
 ```
 This combines all the ortholog trees in one file, one for the *unpruned* trees, one for the *pruned* ones.
 
 Then computes the summary tree with [astral4](https://github.com/chaoszhang/ASTER/blob/master/tutorial/astral4.md) and rerooted the tree with [phyx](https://github.com/FePhyFoFum/phyx).  `astral4` is the newest version of ASTRAL as I write this tutorial. The old versions are also fine. I used `-t` to use more threads with `astral4` to make the analyses go faster, you can add `-t` as you see fit for your machine. `phyx` has a lot of useful commands for phylogenetics, highly recommend!
 
 ```console
-$ astral4 -i example_data/ERIC_ASTRAL_in_unpruned.tre -o example_data/ERIC_ASTRAL_out_unpruned.tre
-$ pxrr -t example_data/ERIC_ASTRAL_out_unpruned.tre -f example_data/ERIC_outgroup.txt -o example_data/ERIC_ASTRAL_rooted_unpruned.tre
+astral4 -i example_data/ERIC_ASTRAL_in_unpruned.tre -o example_data/ERIC_ASTRAL_out_unpruned.tre
+pxrr -t example_data/ERIC_ASTRAL_out_unpruned.tre -f example_data/ERIC_outgroup.txt -o example_data/ERIC_ASTRAL_rooted_unpruned.tre
 ```
 Do the same for *pruned* trees, commands omitted here.
 
@@ -147,7 +151,7 @@ You can also find this information by using `h2o map_dupl -h`
 ### 2.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o map_dupl -t example_data/processed_trees -s example_data/ERIC_ASTRAL_rooted_unpruned.tre
+h2o map_dupl -t example_data/processed_trees -s example_data/ERIC_ASTRAL_rooted_unpruned.tre
 ```
 
 ## 2.3 Output
@@ -197,7 +201,7 @@ If one of the `pruned/` or `unpruned/`directories doesn't exist in `processed_tr
 ### 3.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o extract_wgd_trees -t example_data/processed_trees -n idk
+h2o extract_wgd_trees -t example_data/processed_trees -n idk
 ```
 
 ## 3.3 Output
@@ -231,7 +235,7 @@ This command requires the *unpruned* `*_rooted_processed.tre` from `infer_ortho`
 ### 4.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o gene_loss -t example_data/processed_trees -n idk
+h2o gene_loss -t example_data/processed_trees -n idk
 ```
 
 ## 4.3 Output
@@ -257,7 +261,7 @@ Unless specified otherwise, `other_output/` is the default output folder. Inside
 `bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**:
 
 ```console
-$ bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL_in_unpruned.tre -tv > bp_output_unpruned.txt
+bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL_in_unpruned.tre -tv > bp_output_unpruned.txt
 ```
 
 We also recommend:
@@ -284,7 +288,7 @@ We also recommend:
 ### 5.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o bp2pie -f bp_output_unpruned.txt
+h2o bp2pie -f bp_output_unpruned.txt
 ```
 
 ## 5.3 Output
@@ -302,7 +306,7 @@ Unless specified otherwise, the current directory is the default output folder. 
 -  `bp_summary_tree_numbered.tre` - Node number as node label, to correpond with `bp_data.tsv`. The default tree is the summary tree used in `bp` analysis. If a summary tree with different branch length is provided with `-s`, then this corresponding tree with `bp_data.tsv` will be the provided tree.
 -  `gokstad_pie.tre` - The input tree for `gokstad` plotting, cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
 ```console
-$ gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
+gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 ```
 
 # 6. Extracting constraint tree - `h2o constraint`
@@ -329,7 +333,7 @@ This command requires a summary tree file and a list of nodes or tips to keep in
 ### 6.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-$ h2o constraint -s summary_tree_numbered.tre -n idk
+h2o constraint -s summary_tree_numbered.tre -n idk
 ```
 ["141","132","115","103","77","101","87","2"]
 ["Cornales_Nyssaceae_Nyssa_sinensis","Ericales_Balsaminaceae_Impatiens_hawkeri","Ericales_Ericaceae_Gaultheria_nummularioides","Ericales_Lecythidaceae_Lecythis_congestiflora","Ericales_Polemoniaceae_Linanthus_californicus","Ericales_Primulaceae_Primula_veris","Ericales_Sapotaceae_Sarcosperma_laurinum","Ericales_Sapotaceae_Manilkara_sapota","Ericales_Ebenaceae_Diospyros_lotus"]
@@ -338,5 +342,5 @@ $ h2o constraint -s summary_tree_numbered.tre -n idk
 Unless specified otherwise, the current directory is the default output folder. Inside the folder, this new file will be created:
 - `constraint_tree.tre` - the constraint tree, example usage with ASTRAL:
 ```console
-$ astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.tre
+astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.tre
 ```

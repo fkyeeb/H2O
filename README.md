@@ -5,61 +5,100 @@
 
 - [Overview](#overview)
 - [Installation](#installation)
+  - [Install the most recent release with PyPI](#install-the-most-recent-release-with-pypi)
+  - [Build and install from the source](#build-and-install-from-the-source)
+  - [Dependency](#dependency)
 - [Tutorial](#tutorial)
-    - [Other useful subcommands](#other-useful-subcommands)
+  - [Workflows](#workflows)
+    - [*Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with WGDs](#main-workflow---reducing-gene-tree-discordance-created-from-erroneous-orthology-inference-associated-with-wgds)
+    - [Exploring gene duplications and gene copy losses after WGD](#exploring-gene-duplications-and-gene-copy-losses-after-wgd)
+    - [Simple orthology inference](#simple-orthology-inference)
 - [References](#references)
 
 
 # Overview
-
-Ancient WGD-aware homolog to ortholog trees command-line tool, for plant phylogenomics
-
+`h2o` is an ancient-whole-genome-duplication-aware homolog to ortholog trees command-line tool, for plant phylogenomics. It can infer orthology from homologous phylogenetic trees, calculate gene duplication counts, and most importantly, **reduce erroneous orthology inference in clades with putative ancient whole genome duplications (WGD)**. Ancient WGDs tend to associate with high levels of gene tree discordance and `h2o` is designed to reduce the discordance created from erroneous orthology inference associated with WGDs.
 
 # Installation
+Installation should work the same way on macOS, Linux, and Windows. You can either install with PyPI or from the source.
 
-upload to PyPI?
+## Install the most recent release with PyPI
 
+```console
+pip install h2o-phy
+```
+
+## Build and install from the source
+
+`git clone` the repo to your local directory
+```console
+git clone https://github.com/fkyeeb/H2O.git
+```
+
+Navigate inside the `H2O/` folder and build the package
+```console
+cd H2O
+python -m build
+```
+Then install the package
+```console
+pip install dist/h2o-*.tar.gz
+```
+
+
+
+## Dependency
 This package only requires python version >= 3.6 to run and no extra python libraries installation required.
 
 # Tutorial
-The detailed tutorial of each subcommand of `h2o` is [here](tutorials/tutorial.md). The content below provides the overall workflow for different user scenarios.
+**The detailed tutorial of each subcommand of `h2o` is [here](tutorials/tutorial.md).** The content below provides the overall workflow for different user scenarios.
 
-## Scenarios `h2o` are designed for:  <!-- omit in toc -->
+> [!TIP]
+> `h2o` orthology inference requires homolog trees to have **monophyletic outgroup(s)** to be processed. It will skip the tree and print out error messages if a homolog tree do not have  monophyletic outgroup(s). Consider cleaning your dataset if most of your outgroups are not monophyletic.
 
-### 1. Main scenario: I have a plant phylogenomic dataset with known WGD event(s) and these events are correlated with gene tree discordance. It is difficult to resolve the relationships right after WGD events and I would like to explore alternative relationships.  <!-- omit in toc -->
+## Workflows
+
+### *Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with WGDs
+
+**User scienario**: I have a plant phylogenomic dataset with known WGD event(s) and these events are correlated with gene tree discordance. It is difficult to resolve the relationships right after WGD events and I would like to explore alternative relationships.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove tips that have lost one of the gene copy from WGD - modified trees are subsequently referred as <u>*pruned*</u>
+1. Remove tips that no longer retain both gene copies generated from WGD - modified trees are subsequently referred as <u>*pruned*</u>
 2. Select ortholog trees that are from homolog trees that show the gene duplication from WGD, and only use them for species tree inference - seleced ortholog trees are subsequently referred as <u>*WGD*</u> trees
 
-This workflow will produce 4 different sets of ortholog trees (purple box) and like in the table below. **Both approaches to reduce gene tree conflict removes a lot of data from the trees.** We highly recommend users to compare the summary "species" tree prodeced from each set of orthologs and the gene tree conflict results to select the best supported summary tree/hypothesis inferred from your dataset. 
+![drawio](tutorials/main_workflow.drawio.svg)
 
-The purpose is to explore a better hypothesis for the relationships after WGD events. While `h2o` removes data from the trees and reduce gene tree conflict, it can cause more nested relationships to be less supported. Subcommand `h2o constraint` can easily extract a constraint tree from a summary tree and users can use the constraint tree with the full ortholog dataset to produce a constrained summary tree.
+This workflow will produce 4 different sets of ortholog trees (purple box) and like in the table below. **Both approaches to reduce gene tree conflict removes a lot of data from the trees.** We highly recommend users to compare the summary "species" tree prodeced from each set of orthologs and the gene tree conflict results to select the best supported summary tree inferred from your dataset, as shown in the flowchart below. The steps enclosed by dashed lines are optional.
 
 |  | unpruned |  pruned |
 |------|---|---|
 | No WGD selection | Ortholog Trees | Pruned Ortholog Trees |
 | WGD | WGD Ortholog Trees | WGD Pruned Ortholog Trees |
 
-![drawio](tutorials/package_workflow.drawio.svg)
+The purpose is to explore a better hypothesis for the relationships after WGD events. While `h2o` removes data from the trees and reduce gene tree conflict, it can cause more nested relationships to be less supported. 
 
-numbered italicized text - `h2o` subcommands
+**In your "best supported summary tree", if you found more support in the relationships right after WGD events but less support in more nested relationships, please proceed with the optional steps. Subcommand `h2o constraint` can easily extract a constraint tree (for the relationships right after WGD events) from a summary tree and users can use the constraint tree with the full ortholog dataset to produce a constrained summary tree. Then the "best summary tree hypothesis" will contain the better supported relationships for both the relationships right after WGD and also more nested relationships.*
 
-Green box - external files or info
+![drawio](tutorials/main_workflow2.drawio.svg)
 
-Blue box - Other `h2o` output files
+### Exploring gene duplications and gene copy losses after WGD
 
-Purple box -  `h2o` output ortholog trees for comparison
+**User scienario**: I would like to explore the patterns of gene duplications in my plant phylogenomic dataset and gene copy losses after putative ancient WGD events.
 
-### 2. I have a plant phylogenomic dataset and I would like to explore the dataset. I would like to produce reliable ortholog trees and/or calculate gene duplications in my dataset.  <!-- omit in toc -->
+> [!TIP]
+> The summary tree topology is going to affect the counts. If you are exploring different phylogenetic hypotheses with the main workflow, you may want to use the best supported topology here.
 
-This workflow is the first two steps of the previous workflow. 
+![drawio](tutorials/dup_workflow.drawio.svg)
 
-![drawio](tutorials/workflow2.drawio.svg)
+### Simple orthology inference
 
-### Other useful subcommands
+**User scienario**: I have a plant phylogenomic dataset with good outgroups and I would like to produce ortholog trees in one simple step.
 
-gene loss, bp2pie, extract constraint tree
+This workflow is the first step of the main workflow. Although `infer_ortho` is similar to ortholog inference methods in Yang and Smith (2014), it is not the same with any of the 4 methods. `h2o infer_ortho` requires monophyletic outgroups in the tree and does not keep any tree without outgroups.
+
+![drawio](tutorials/ortho_workflow.drawio.svg)
+
 
 # References
+
 Yang, Y., and Smith, S. A. (2014). Orthology inference in nonmodel organisms using transcriptomes and low-coverage genomes: improving accuracy and matrix occupancy for phylogenomics. *Molecular biology and evolution*, 31(11), 3081-3092.
