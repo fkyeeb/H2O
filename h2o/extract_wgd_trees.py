@@ -10,7 +10,6 @@ from h2o.utils import (
 import os
 import sys
 import time
-from pathlib import Path
 
 def cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning):
     if os.path.exists(processed_tree_folder +  pruning + "/"):
@@ -41,7 +40,7 @@ def main(args):
 
     processed_tree_folder = check_path(args.processed_tree_dir,error_if_not_exists=True)
     
-    default_dup_dir = str(Path(processed_tree_folder).parent) + "/other_output/"
+    default_dup_dir = "other_output/"
     duplication_counts_dir = check_path(args.duplication_counts_dir,default_path=default_dup_dir,error_if_not_exists=True)
 
     duplication_counts_file = check_path(duplication_counts_dir + "duplication_counts.tsv",is_folder=False,error_if_not_exists=True)

@@ -90,7 +90,7 @@ def run_shell_command(cmd):
     print("\n------------------------------------------------------------")
     print("\nRunning command: " + cmd + "\n")
 
-    subprocess.run([os.environ["SHELL"], "-i", "-c",cmd], check=True)
+    subprocess.run([os.environ["SHELL"], "-c",cmd], check=True)
 
     end_time = time.time()
     elapsed = transform_elapsed_time(start_time,end_time)

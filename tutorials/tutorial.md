@@ -1,5 +1,5 @@
 # Table of Contents <!-- omit in toc -->
-- [impletement no ortholog production? and some all\_in\_1 options](#impletement-no-ortholog-production-and-some-all_in_1-options)
+- [setting min\_dupl\_size to 0.1?](#setting-min_dupl_size-to-01)
 - [Overview](#overview)
 - [1. Orthology Inference - `h2o infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
   - [1.1 Input](#11-input)
@@ -9,62 +9,59 @@
   - [2.1 Input](#21-input)
   - [2.2 How to run](#22-how-to-run)
   - [2.3 Output](#23-output)
-- [3. Extracting trees that shows gene duplications at WGD events - `h2o extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplications-at-wgd-events---h2o-extract_wgd_trees)
+- [3. Extracting trees that show gene duplications at WGD events - `h2o extract_wgd_trees`](#3-extracting-trees-that-show-gene-duplications-at-wgd-events---h2o-extract_wgd_trees)
   - [3.1 Input](#31-input)
   - [3.2 How to run](#32-how-to-run)
   - [3.3 Output](#33-output)
-- [4. Inferring gene loss after WGD events - `h2o gene_loss`](#4-inferring-gene-loss-after-wgd-events---h2o-gene_loss)
+- [4. Inferring gene copy loss after WGD events - `h2o gene_loss`](#4-inferring-gene-copy-loss-after-wgd-events---h2o-gene_loss)
   - [4.1 Input](#41-input)
   - [4.2 How to run](#42-how-to-run)
   - [4.3 Output](#43-output)
-- [5. Extracting `bp` conflict result for ploting - `h2o bp2pie`](#5-extracting-bp-conflict-result-for-ploting---h2o-bp2pie)
+- [5. Extracting `bp` conflict result for plotting - `h2o bp2pie`](#5-extracting-bp-conflict-result-for-plotting---h2o-bp2pie)
   - [5.1 Input](#51-input)
   - [5.2 How to run](#52-how-to-run)
   - [5.3 Output](#53-output)
 - [6. Extracting constraint tree - `h2o constraint`](#6-extracting-constraint-tree---h2o-constraint)
   - [6.1 input](#61-input)
   - [6.3 Output](#63-output)
+- [References](#references)
 
-# impletement no ortholog production? and some all_in_1 options
+# setting min_dupl_size to 0.1?
 
 # Overview
 `h2o` uses the command line interface to run.
 
-`h2o` is designed for datasets that have putative WGDs, but is also compatible with datasets without putative ancient whole-genome duplications (WGD). If your dataset is not susceptible to gene tree conflict potentially caused by WGDs, the orthology inference command [`h2o infer_ortho`](#1-orthology-inference---h2o-infer_ortho) can produce cleaned ortholog trees very fast and easy. If your dataset is susceptible to gene tree conflict potentially caused by WGDs, I recommend going through the whole tutorial and try all the commands.
+`h2o` is designed for plant phylogenomic datasets that have putative WGDs, but is also compatible with datasets without putative ancient whole-genome duplications (WGD). Datasets that assume single-copy genes are not compatible.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove tips that no longer retain both gene copies generated from WGD - subsequently refer as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
-2. Select ortholog trees that are from homolog trees that show the gene duplication from WGD, and only use them for species tree inference - implemented in [`extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplication-at-wgd-events---h2o-extract_wgd_trees)
+1. Remove taxa that no longer retain both gene copies generated from WGD - subsequently refer to as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
+2. Select homolog trees that show the gene duplication from WGD, and only use ortholog trees from these homologs for species tree inference - implemented in [`extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplication-at-wgd-events---h2o-extract_wgd_trees)
 
-Most of the subcommands are not independent of each other. They usually require some results from the step before it. **To run through the whole pipeline, please go through the tutorial in order.**
+Most of the subcommands are not independent of each other. They usually require some results from the previous steps. If you are unsure what subcommands to use, the [README](README.md) file has some example workflows for the package.
 
-There is a very small subset of Ericales phylotranscriptomic dataset (Carruthers et al. 2024) in the `example_data` folder. The following tutorial ran on this example dataset.
-
-Carruthers, T., D. J. P. Gonçalves, P. Li, A. S. Chanderbali, C. W. Dick, P. W. Fritsch, D. A. Larson, et al. 2024. Repeated shifts out of tropical climates preceded by whole genome duplication. *New Phytologist* 244: 2561–2575.
+There is a tiny subset of Ericales phylotranscriptomic dataset (Carruthers et al. 2024) in the `example_data` folder. The following tutorial runs on this example dataset.
 
 # 1. Orthology Inference - `h2o infer_ortho`
 
-This is the most important subcommand for `h2o`. It takes homolog trees as input and output cleaned ortholog trees for species tree inference. Output includes both ortholog trees experienced *pruning* (defined in Overview) and the same set of tree without *pruning*.
+This is the most important subcommand for `h2o`. It takes homolog trees as input and outputs cleaned ortholog trees for summary "species" tree inference. Output includes both ortholog trees experienced *pruning* (defined in Overview) and the same set of trees without *pruning*.
 
 The detailed steps of this subcommand:
 1. Only process homolog trees with monophyletic outgroups. Other trees skipped.
-2. Label nodes with gene duplications. If the tip overlap between two child clades is less than `min_dupl_overlap` (default is 3), the overlaping tips are removed. If the tip overlap between two child clades of a node is more or equal to `min_dupl_overlap`, the node is labeled as a duplication node (node label "D" in newick tree). These trees are the processed homolog trees.
+2. Label nodes with gene duplications. The overlapping tips are removed if (1) the tip overlap between two child clades is less than `min_dupl_tip_overlap` (default is 3) or (2) the tip overlap is less than `min_dupl_percentage_overlap`, default is 0.1, of the bigger clade. If the tip overlap is more than both of the two criteria, the node is labeled as a duplication node (node label "D" in Newick tree). These trees are the processed homolog trees.
 3. If *pruning* is needed, the processed homolog trees go through *pruning*.
-4. The processed homolog trees are splitted at the duplication nodes into ortholog trees.
+4. The processed homolog trees are split at the duplication nodes into ortholog trees.
 
-Although it is similar to ortholog inference methods in Yang and Smith (2014), it is not the same with any of the 4 methods. `h2o infer_ortho` requires monophyletic outgroups in the tree and does not keep any tree without outgroups.
+Although it is similar to ortholog inference methods in Yang and Smith (2014), it is not the same as any of the 4 methods. `h2o infer_ortho` requires monophyletic outgroups in the tree and does not keep any tree without outgroups.
 
 Examples for `infer_ortho`:
 
 ![svg](infer_ortho.svg)
 
-Yang, Y., and Smith, S. A. (2014). Orthology inference in nonmodel organisms using transcriptomes and low-coverage genomes: improving accuracy and matrix occupancy for phylogenomics. *Molecular biology and evolution*, 31(11), 3081-3092.
-
 ## 1.1 Input
 
-Homolog trees in individual newick tree files in one folder. 
+This subcommand requires homolog trees in individual Newick tree files in one folder, each file with one tree. Tips of the same taxa should have the same tip name, or they would not be recognized as the same taxa.
 
-**We recommend users not to input homolog trees with branches longer than 0.5 substitution/site.** If homolog trees contain branches that is longer than 0.5 substitution/site, then this tree should be separated into two homolog trees at this branch. 0.5 substitution/site means on average half of the sites have substitutions. This branch is too long for a real homologous gene family. `h2o` does not give warnings about branches longer than 0.5, and is likely to take it as a gene duplication and break it into orthologs. In reality this may not interfere with species tree inference. It may inflate gene duplication numbers, but the inflation should not be significant if the dataset is reasonably good.
+**We recommend users not to input homolog trees with branches longer than 0.5 substitutions/site.** If homolog trees contain branches that are longer than 0.5 substitutions/site, then this tree should be separated into two homolog trees at this branch. 0.5 substitution/site means on average, half of the sites have substitutions. This branch is too long for a real homologous gene family. `h2o` does not give warnings about branches longer than 0.5, and is likely to take it as a gene duplication and break it into orthologs. In reality, this may not interfere with species tree inference. It may inflate gene duplication numbers, but the inflation should not be significant if the dataset is reasonably good.
 
 ## 1.2 How to run
 
@@ -78,34 +75,40 @@ You can also find this information by using `h2o infer_ortho -h`
 | `-o` | `--outgroup_list` | Yes | List of outgroup taxa, separated by commas, no spaces (mutually exclusive with `-of`)
 | `-of` | `--outgroup_file` | Yes | File containing the outgroup taxa, each line is a taxon (mutually exclusive with `-o`)
 | `-e` | `--tree_file_ending` | Yes | File ending of the homolog trees
-| `-od` | `--output_directory` | No | Output directory, default is creating a `processed_trees/` directory in the parent directory of `homolog_tree_dir` 
-| `-m` | `--min_dupl_overlap` | No | Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 3
+| `-od` | `--output_directory` | No | Output directory, default is creating a `processed_trees/` directory in the current directory
+| `-m` | `--min_dupl_tip_overlap` | No | Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 3
+| `-mp` | `--min_dupl_percentage_overlap` | No | Minimum percentage overlap between two child clades to be considered as a duplication node, default is 0.1
 | `-p` | `--just_pruning` | No | Only produce pruned ortholog trees
 | `-np` | `--no_pruning` | No | Only produce unpruned ortholog trees
 
 ### 1.2.2 Running the command with example dataset <!-- omit in toc -->
 
-The folders may vary based on your current directory and where you downloaded the dataset. Before running `h2o`, I do not know whether *pruning* is going to be helpful to for my dataset, so I decided to run the default setting, which is producing both the *pruned* and *unpruned* orthologs for comparison. To do this, I do not flag `-p` or `-np`. 
-
+The folders may vary based on your current directory and where you downloaded the dataset. First, you would want to navigate into the `example_data/` directory:
 ```console
-h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree
+cd H2O/example_data
 ```
-If the output directory does not exist, `h2o` will create the folder. Because all output trees are going to be created inside the output directory, this directory, if exists, is recommended to be empty before running the command.
 
-If I want to run `infer_ortho` again to only produce pruned ortholog trees, I will add `-p` to the command. To only unpruned ortholog trees, I will add `-np`. For example, **if you are only looking for some fast ortholog trees without _pruning_**, do:
+To run the default setting, which is producing both the *pruned* and *unpruned* orthologs for comparison, do:
 
 ```console
-h2o infer_ortho -t example_data/ERIC_homolog_subset/ -of example_data/ERIC_outgroup.txt -e .subtree -np
+h2o infer_ortho -t ERIC_homolog_subset/ -of ERIC_outgroup.txt -e .subtree
+```
+If the output directory does not exist, `h2o` will create the folder. Because all output trees are going to be created inside the output directory, this directory, if it exists, is recommended to be empty before running the command.
+
+To only produce pruned ortholog trees, add `-p` to the command. To only unpruned ortholog trees, add `-np`. For example, **if you are only looking for some fast ortholog trees without _pruning_**, do:
+
+```console
+h2o infer_ortho -t ERIC_homolog_subset/ -of ERIC_outgroup.txt -e .subtree -np
 ```
 
 ## 1.3 Output
 
-For the default setting, there will be some output and 2 folders write to the output folder `processed_trees/`:
+For the default setting, there will be some output and 2 folders written to the output folder `processed_trees/`:
 - Rooted homolog trees
 - `unpruned/` - contains processed* homolog trees and *pruned* ortholog trees
 - `pruned/` - contains processed* homolog trees and *unpruned* ortholog trees
 
-*_processing is a necessary tree cleaning process, involving labeling duplication nodes and removing tip duplications that are less than `min_dupl_overlap`. The processed homolog trees in `pruned/` folder also went through pruning._
+*_processing is a necessary tree cleaning process, involving labeling duplication nodes and removing tip duplications that are less than `min_dupl_tip_overlap` or `min_dupl_percentage_overlap`. The processed homolog trees in `pruned/` folder also went through pruning._
 
 If the input tree file name is `cluster1.subtree` and `.subtree` is entered as the `tree_file_ending`:
 - Rooted homolog trees  - `cluster1_rooted.tre`
@@ -114,25 +117,26 @@ If the input tree file name is `cluster1.subtree` and `.subtree` is entered as t
 
 
 # 2. Gene duplication summary statistics - `h2o map_dupl`
-Now that we processed all the trees, we can count the gene duplications at each node to support the inference of putative WGDs. This command has a similar functionality as [phyparts](https://bitbucket.org/blackrim/phyparts/src/master/) duplication command. It provides slightly more detailed results for gene duplication counts as a tsv file.
+Now that we have processed all the trees, we can count the gene duplications at each node to support the inference of putative WGDs. This command is similar to the [phyparts](https://bitbucket.org/blackrim/phyparts/src/master/) duplication command; the criteria of gene duplication identification may be slightly different. The criteria are specified in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho) detailed steps, as duplication nodes are identified in the previous step. `map_dupl` also provides slightly more detailed results for gene duplication counts as a tsv file.
 
 ## 2.1 Input
-This command requires that you already ran `h2o infer_ortho` because all the gene duplication inference for individual homolog trees were done in the `infer_ortho` command. `map_dupl` just summarizes all the information. 
+This command requires that you have already run `h2o infer_ortho` because all the gene duplication inference for individual homolog trees was done in the `infer_ortho` command. `map_dupl` just summarizes all the information. 
 
-This command requires the *unpruned* `*_rooted_processed.tre` from the previous command and also a rooted summary "species" tree computed from all the orthologs. We are only mapping gene duplications with *unpruned* homolog trees because *pruned* trees are meant for summary tree inference and not for gene duplication mapping. If *pruned* trees are used, the gene duplications will be mapped to more nested nodes compared to the correct one.
+This command requires the *unpruned* `*_rooted_processed.tre` from the previous command and also a rooted summary "species" tree computed from all the orthologs. **It is important to make sure all your tip names match if you have gone through some taxonomic changes throughout the analysis.** We are only mapping gene duplications with *unpruned* homolog trees because *pruned* trees are meant for summary tree inference and not for gene duplication mapping. If *pruned* homolog trees are used, the gene duplications will be mapped to more nested nodes compared to the correct one.
 
-I provided a rooted summary tree computed from the *unpruned* full Ericales dataset from Carruthers et al. (2024) in `example_data/`. A summary tree made from the subset dataset can be different from the one I provided. To compute the summary tree for the example dataset, you can do the following commands, which uses two other packages:
+I provided a rooted summary tree computed from the *unpruned* full Ericales dataset from Carruthers et al. (2024) in `example_data/`. A summary tree made from the subset dataset can be different from the one I provided. To compute the summary tree for the example dataset, you can do the following commands, which use two other packages that need to be installed.
+
+First, combine all the ortholog trees in one file, one for the *unpruned* trees, one for the *pruned* ones.
 ```console
-cat example_data/ERIC_ortholog/unpruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_unpruned.tre
-cat example_data/ERIC_ortholog/pruned/*_ortho[0-9].tre > example_data/ERIC_ASTRAL_in_pruned.tre
+cat processed_trees/unpruned/*_ortho[0-9].tre > ERIC_ASTRAL_in_unpruned.tre
+cat processed_trees/pruned/*_ortho[0-9].tre > ERIC_ASTRAL_in_pruned.tre
 ```
-This combines all the ortholog trees in one file, one for the *unpruned* trees, one for the *pruned* ones.
 
-Then computes the summary tree with [astral4](https://github.com/chaoszhang/ASTER/blob/master/tutorial/astral4.md) and rerooted the tree with [phyx](https://github.com/FePhyFoFum/phyx).  `astral4` is the newest version of ASTRAL as I write this tutorial. The old versions are also fine. I used `-t` to use more threads with `astral4` to make the analyses go faster, you can add `-t` as you see fit for your machine. `phyx` has a lot of useful commands for phylogenetics, highly recommend!
+Then computes the summary tree with [astral4](https://github.com/chaoszhang/ASTER/blob/master/tutorial/astral4.md) and reroots the tree with [phyx](https://github.com/FePhyFoFum/phyx).  `astral4` is the newest version of ASTRAL as I write this tutorial. The old versions should also be fine. I used `-t` to use more threads with `astral4` to make the analyses go faster, but not specified below; you can add `-t` as you see fit for your machine. `phyx` has a lot of useful commands for phylogenetics, highly recommend! `pxrr` is a command within `phyx`.
 
 ```console
-astral4 -i example_data/ERIC_ASTRAL_in_unpruned.tre -o example_data/ERIC_ASTRAL_out_unpruned.tre
-pxrr -t example_data/ERIC_ASTRAL_out_unpruned.tre -f example_data/ERIC_outgroup.txt -o example_data/ERIC_ASTRAL_rooted_unpruned.tre
+astral4 -i ERIC_ASTRAL_in_unpruned.tre -o ERIC_ASTRAL_out_unpruned.tre
+pxrr -t ERIC_ASTRAL_out_unpruned.tre -f ERIC_outgroup.txt -o ERIC_ASTRAL_rooted_unpruned.tre
 ```
 Do the same for *pruned* trees, commands omitted here.
 
@@ -146,17 +150,17 @@ You can also find this information by using `h2o map_dupl -h`
 | ------------- | ------------- | ------------- | ------------- |
 | `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
 | `-s` | `--species_tree_file` | Yes | Species tree file |
-| `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir` |
+| `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the current directory if not exist|
 
 ### 2.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-h2o map_dupl -t example_data/processed_trees -s example_data/ERIC_ASTRAL_rooted_unpruned.tre
+h2o map_dupl -t processed_trees -s ERIC_ASTRAL_rooted_unpruned.tre
 ```
 
 ## 2.3 Output
-Without specifying a different output directory, a folder named `other_output/` will be created inside `example_data/`. Inside the folder, there will be:
-- `duplication_counts.tsv` - gene duplication counts for *unpruned* and *processed* homolog clusters. The tab-delimited file will look something like this:
+Without specifying a different output directory, a folder named `other_output/` will be created. Inside the folder, there will be:
+- `duplication_counts.tsv` - gene duplication counts for *unpruned* and *processed* homolog clusters. Counts for each node in each homolog cluster are listed separately. The tab-delimited file will look something like this:
 
   | tree | 0 | 1 | 2 | 3 | 4 | 5 | ... | n/a |
   |------|---|---|---|---|---|---|---|---|
@@ -165,25 +169,21 @@ Without specifying a different output directory, a folder named `other_output/` 
   | cluster3 | 0 | 0 | 0 | 3 | 0 | 0 | ... | 0 |
   | ... |
   
-  It summarizes all the gene duplications at each node of each homolog tree. The first column is the name of the homolog tree without `.tre`. The first row is the node numbers in the summary tree, the same node numbers in `summary_tree_numbered.tre`. The last column "n/a" lists the number of gene duplications that is not matched with any node in the summary tree, likely due to gene tree conflict.
-- `summary_tree_numbered.tre` - there are two trees inside this newick tree file. The first tree has node numbers as node labels; the second tree has the sum of gene duplications of all homolog trees at each node as node labels.
+  It summarizes all the gene duplications at each node of each homolog tree. The first column is the name of the homolog tree without `.tre`. The first row is the node numbers in the summary tree, the same node numbers in `summary_tree_numbered.tre`. The last column "n/a" lists the number of gene duplications that are not matched with any node in the summary tree, likely due to gene tree conflict.
+- `summary_tree_numbered.tre` - There are two trees inside this newick tree file. The first tree has node numbers as node labels; the second tree has the sum of gene duplications of all homolog trees at each node as node labels.
 
-# 3. Extracting trees that shows gene duplications at WGD events - `h2o extract_wgd_trees`
-This subcommand will gather the names of homolog trees that shows gene duplications at the node of *known putative WGD events**. Then it will extract the ortholog trees inferred from these homolog trees and concatenate them into a file that is ready for ASTRAL input.
+# 3. Extracting trees that show gene duplications at WGD events - `h2o extract_wgd_trees`
+This subcommand gathers the names of homolog trees that show gene duplications at the node of *known putative WGD events**. Then it extracts the ortholog trees inferred from these homolog trees and concatenates them into a file that is ready for ASTRAL input.
 
 **Known putative WGD events should be supported by multiple pieces of evidence, not simply from elevated gene duplication counts at nodes. As examples in Yang et al. (2018) and Feng et al. (2024), putative WGDs are supported by Ks plots, chromosome counts, and elevated gene duplication counts.*
 
 > [!TIP]
 > If your dataset has multiple WGD events, the events are far from each other in the species tree, and they correlate with elevated gene tree conflicts in separate parts of the tree, we do not recommend running the pipeline in this standardized way. This limitation of `h2o` is specified in the publication. `h2o` will not run into error if this is the case, but the program output may not be as helpful. Feel free to contact KF for help if your dataset has this problem.
 
-Feng, K., J. F. Walker, H. E. Marx, Y. Yang, S. F. Brockington, M. J. Moore, R. K. Rabeler, and S. A. Smith. 2024. The link between ancient whole‐genome duplications and cold adaptations in the Caryophyllaceae. *American Journal of Botany* e16350.
-
-Yang, Y., Moore, M. J., Brockington, S. F., Mikenas, J., Olivieri, J., Walker, J. F., & Smith, S. A. (2018). Improved transcriptome sampling pinpoints 26 ancient and more recent polyploidy events in Caryophyllales, including two allopolyploidy events. *New Phytologist*, 217(2), 855-870.
-
 ## 3.1 Input
 This subcommand requires the processed ortholog trees from `infer_ortho`, the `duplication_counts.tsv` from `map_dupl`, and node numbers corresponding to WGD events. 
 
-If one of the `pruned/` or `unpruned/`directories doesn't exist in `processed_tree_dir`, `h2o` will only extract ortholog trees from the existing folder. If both of those directories do not exist. This command will not run. The corresponding node numbers have to match with those in the first tree of `summary_tree_numbered.tre`.
+If one of the `pruned/` or `unpruned/`directories doesn't exist in `processed_tree_dir`, `h2o` will only extract ortholog trees from the existing folder. If neither of those directories exists, this command will not run. The corresponding node numbers for WGD have to match those in the first tree of `summary_tree_numbered.tre`.
 
 ## 3.2 How to run
 
@@ -193,31 +193,34 @@ If one of the `pruned/` or `unpruned/`directories doesn't exist in `processed_tr
 |--------|-------------|----------|-------------|
 | `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
 | `-n` | `--wgd_nodes` | Yes | List of WGD node numbers, separated by commas, no spaces |
-| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output` directory in the parent directory of `processed_tree_dir`* |
-| `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir`  |
+| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output/` directory in the current directory* |
+| `-od` | `--output_directory` | No | Output directory, default is `other_output/` directory in the current directory, create if not exist  |
 
 **If the directory `duplication_counts.tsv` is currently not in `other_output/`, please specify the location of the folder with `-f`.*
 
 ### 3.2.2 Running the command with example dataset <!-- omit in toc -->
+The known putative WGDs are at nodes 3 and 4 in `summary_tree_numbered.tre`, so run the command as: 
 
 ```console
-h2o extract_wgd_trees -t example_data/processed_trees -n idk
+h2o extract_wgd_trees -t processed_trees -n 3,4
 ```
 
 ## 3.3 Output
 Unless specified otherwise, `other_output/` is the default output folder. Inside the folder, these new files will be created:
 - `cat_unpruned_wgd_trees.sh` and `cat_pruned_wgd_trees.sh` - bash script to concatenate the *unpruned* and *pruned* ortholog trees into one file
-  - `extract_wgd_trees` already ran this script for you. If needed, to run these script again, do `bash cat_unpruned_wgd_trees.sh` or `bash cat_pruned_wgd_trees.sh`
+  - `extract_wgd_trees` already ran this script for you. If needed, to run these scripts again, do `bash cat_unpruned_wgd_trees.sh` or `bash cat_pruned_wgd_trees.sh`
 - `ASTRAL_in_unpruned_wgd_trees.tre` and `ASTRAL_in_pruned_wgd_trees.tre` - concatenated ortholog tree files
-  - One only contains *unpruned* orthologs that are from homolog trees that shows gene duplications at the node of WGD events; the other one only contains those that are *pruned*.
+  - The first file only contains *unpruned* orthologs that are from homolog trees that show gene duplications at the node of WGD events; the second file only contains those that are *pruned*.
   - These tree files can be used directly as ASTRAL inputs.
 
-# 4. Inferring gene loss after WGD events - `h2o gene_loss`
+# 4. Inferring gene copy loss after WGD events - `h2o gene_loss`
 
-This subcommand records and maps gene loss after known putative WGD events. 
+This subcommand records and maps gene copy loss after known putative WGD events. It outputs a TSV file for the gene copy loss counts and a tree where the counts are mapped.
 
 ## 4.1 Input
-This command requires the *unpruned* `*_rooted_processed.tre` from `infer_ortho` command, `duplication_counts.tsv` and `summary_tree_numbered.tre` from `map_dupl` command. It also requires known putative WGD events.
+This command requires the *unpruned* `*_rooted_processed.tre` from `infer_ortho` command, `duplication_counts.tsv` and `summary_tree_numbered.tre` from `map_dupl` command. It also requires *known putative WGD events**.
+
+**Known putative WGD events should be supported by multiple pieces of evidence, not simply from elevated gene duplication counts at nodes. As examples in Yang et al. (2018) and Feng et al. (2024), putative WGDs are supported by Ks plots, chromosome counts, and elevated gene duplication counts.*
 
 ## 4.2 How to run
 
@@ -227,15 +230,16 @@ This command requires the *unpruned* `*_rooted_processed.tre` from `infer_ortho`
 |--------|-------------|----------|-------------|
 | `-t` | `--processed_tree_dir` | Yes | Folder containing processed trees, is the output folder from `infer_ortho` |
 | `-n` | `--wgd_nodes` | Yes | List of WGD node numbers, separated by commas, no spaces |
-| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output` directory in the parent directory of `processed_tree_dir`* |
-| `-od` | `--output_directory` | No | Output directory, default is creating an `other_output/` directory in the parent directory of `processed_tree_dir`  |
+| `-d` | `--duplication_counts_dir` | No | Duplication counts directory, default is `other_output` directory in the current directory* |
+| `-od` | `--output_directory` | No | Output directory, default is creating the `other_output/` directory in the current directory, create if not exist |
 
 **If the directory `duplication_counts.tsv` and `summary_tree_numbered.tre` are currently not in `other_output/`, please specify the location of the folder with `-f`.*
 
 ### 4.2.2 Running the command with example dataset <!-- omit in toc -->
+The known putative WGDs are at nodes 3 and 4 in `summary_tree_numbered.tre`, so run the command as: 
 
 ```console
-h2o gene_loss -t example_data/processed_trees -n idk
+h2o gene_loss -t processed_trees -n 3,4
 ```
 
 ## 4.3 Output
@@ -250,25 +254,26 @@ Unless specified otherwise, `other_output/` is the default output folder. Inside
   | cluster2 | 1 | 3 | 4 |  |
   | ... |
 
-  For example, the 3rd line of this example file means: it's data for tree <u>cluster1</u>, it's the <u>second duplicated clade</u> in this tree for <u>WGD event at node 3</u> of the specis tree. For this duplicated clade, there is a <u>gene loss at node 5</u> of the species tree, there is also single tip gene loss for <u>tip2</u> and <u>tip4</u>.
-- `gene_loss_counts.tre` - gene loss data summarized on the summary species tree. There are two trees inside this newick tree file. The first tree has node numbers as node labels; the second tree has the number of gene loss events of all homolog trees with the given WGD gene duplication at each node as node labels.
+  For example, the 3rd line of this example file means: it's data for tree <u>cluster1</u>, it's the <u>second duplicated clade</u> in this tree for <u>WGD event at node 3</u> of the species tree. For this duplicated clade, there is a <u>gene loss at node 5</u> of the species tree; there is also single tip gene loss for <u>tip2</u> and <u>tip4</u>.
+- `gene_loss_counts.tre` - gene loss data summarized on the summary species tree. There are two trees inside this Newick tree file. The first tree has node numbers as node labels; the second tree has the number of gene loss events of all homolog trees with the given WGD gene duplication at each node as node labels.
 
-# 5. Extracting `bp` conflict result for ploting - `h2o bp2pie`
+# 5. Extracting `bp` conflict result for plotting - `h2o bp2pie`
 
-`h2o` is built to reduce gene tree conflict induced by WGDs, then evaluating gene tree conflict throughout the process is important. We tend to use [bellerophon](https://git.sr.ht/~hms/bellerophon) (`bp`) to infer gene tree conflict, so we implemented a subcommand in `h2o` to take `bp` output directly and digest it into files that is easy to plot in R and with[`gokstad`](https://git.sr.ht/~hms/gokstad).
+`h2o` is built to reduce gene tree conflict induced by WGDs; then, evaluating gene tree conflict throughout the process is important. We used [bellerophon](https://git.sr.ht/~hms/bellerophon) (`bp`) to infer gene tree conflict, and we implemented a subcommand in `h2o` to take `bp` output directly and digest it into files that are easy to plot in R and with[`gokstad`](https://git.sr.ht/~hms/gokstad).
 
 ## 5.1 Input
-`bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**:
+`bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**. To produce a bp output for the example dataset:
 
 ```console
-bp -c example_data/ERIC_ASTRAL_rooted_unpruned.tre -t example_data/ERIC_ASTRAL_in_unpruned.tre -tv > bp_output_unpruned.txt
+bp -c ERIC_ASTRAL_rooted_unpruned.tre -t ERIC_ASTRAL_in_unpruned.tre -tv > other_output/bp_output_unpruned.txt
 ```
+Note that `ERIC_ASTRAL_in_unpruned.tre` is from [`map_dupl` input section](#21-input).
 
 We also recommend:
 - flag `-v` for more verbose results if you would like to see if there is a dominant conflicting topology
 - flag `-scut` for support cutoff if you do not want to consider relationships with lower support
-- flag `-w` if you have a big ortholog tree dataset. It is a way to parallelize the analyses and the number of workers can be higher the number of thread. "The optimum number? You should experiment." quote Stephen Smith.
-- flag `-rng` if it is still very slow with `-w` flagged. `-rng` allows you to do more "parallelization" by hand. You can split it into several `bp` runs and the run time will be significantly reduced. `h2o bp2pie` do not support summarizing multiple `bp` output for now, but can be implemented in the future.
+- flag `-w` if you have a big ortholog tree dataset. It is a way to parallelize the analyses, and the number of workers can be bigger than the number of threads. "The optimum number? You should experiment." quote Dr. Stephen Smith.
+- flag `-rng` if it is still very slow with `-w` flagged. `-rng` allows you to do more "parallelization" by hand. You can split your ortholog tree set into several `bp` runs, and the run time will be significantly reduced. Then, concatenate the results from multiple `bp` runs. `h2o bp2pie` does not support summarizing multiple `bp` output for now, but can be implemented in the future.
 
 ## 5.2 How to run
 
@@ -277,13 +282,13 @@ We also recommend:
 | Option | Long Option Name | Required | Description |
 |--------|-------------|----------|-------------|
 | `-f` | `--bp_output_file` | Yes | bp output file, `-tv` has to be flagged when running bp |
-| `-s` | `--summary_tree_file` | No | Summary tree file*, provide if branch length different from bp tree |
+| `-s` | `--summary_tree_file` | No | Summary tree file*, provide if branch length different from the tree used to run bp |
 | `-p` | `--pie_option` | No | Flag to include unsupported** counts in the gokstad pie tree |
 | `-od` | `--output_directory` | No | Output directory, default is the current directory  |
 
 **In case users want to plot `bp` results with a different branch length, you can provide a tree with the same topology but different branch length, compared to the tree you ran `bp` with.*
 
-***In `bp` results, unsupported means that the tree provided does not contain information about this specific bipart/relationship in the summary tree. It is usually due to missing taxa and having a large number of unsupported trees for each node is normal in large genomic datasets. However, as most folks will interpret unsupported as low support at first glance, the default of `bp2pie` does not include unsupported counts for `gokstad` plotting.*
+***In `bp` results, unsupported means that the tree provided does not contain information about this specific bipart/relationship in the summary tree. It is usually due to missing taxa; having a large number of unsupported trees for each node is normal in large genomic datasets. However, as most folks will interpret unsupported as low support at first glance, the default of `bp2pie` does not include unsupported counts for `gokstad` plotting.*
 
 ### 5.2.2 Running the command with example dataset <!-- omit in toc -->
 
@@ -303,14 +308,15 @@ Unless specified otherwise, the current directory is the default output folder. 
   | 2 | 0 | 2 | 2 |
   | 3 | 4 | 0 | 0 |
   | ... |
--  `bp_summary_tree_numbered.tre` - Node number as node label, to correpond with `bp_data.tsv`. The default tree is the summary tree used in `bp` analysis. If a summary tree with different branch length is provided with `-s`, then this corresponding tree with `bp_data.tsv` will be the provided tree.
--  `gokstad_pie.tre` - The input tree for `gokstad` plotting, cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
+-  `bp_summary_tree_numbered.tre` - Node number as node label, to correspond with `bp_data.tsv`. The default tree is the summary tree used in `bp` analysis. If a summary tree with different branch lengths is provided with `-s`, then this corresponding tree with `bp_data.tsv` will be the provided tree.
+-  `gokstad_pie.tre` - The input tree for `gokstad` plotting cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
 ```console
 gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 ```
+*Note that the root node is numbered as "0" and does not have any conflict result.*
 
 # 6. Extracting constraint tree - `h2o constraint`
-`h2o` removes a lot of data from phylogenomic datasets. Although it offers a topology with more support for relationships right after WGDs, it can lead to less support for more embedded and well-defined clades. To resolve this dilemma, we offer an option in `h2o` to extract the "wanted" relationships from a summary tree to use as constraint for phylogenetic analysis.
+`h2o` removes a lot of data from phylogenomic datasets. Although it can lead to a topology with more support for relationships right after WGDs, it can lead to less support for more embedded clades. To resolve this dilemma, we offer an option in `h2o` to extract part of the topology from a summary tree to use as a constraint for phylogenetic analysis.
 
 ## 6.1 input
 This command requires a summary tree file and a list of nodes or tips to keep in the constraint tree. 
@@ -319,24 +325,27 @@ This command requires a summary tree file and a list of nodes or tips to keep in
 
 | Option | Long Option Name | Required | Description |
 |--------|-------------|----------|-------------|
-| `-s` | `--summary_tree_file` | Yes | Summary tree file*, provide if branch length different from bp tree |
+| `-s` | `--summary_tree_file` | Yes | Summary tree file* |
 | `-od` | `--output_directory` | No | Output directory, default is the current directory  |
 | `-n` | `--nodes` | Yes | List** of nodes to keep, node labels separated by commas, no spaces (mutually exclusive with `-t`) |
 | `-t` | `--tips_file` | Yes | File*** containing the tips to keep, each line is a tip (mutually exclusive with `-n`) |
 
-**The summary tree file needs to have unique node labels for each node, e.g. in `summary_tree_numbered.tre`. Only the first tree will be read as summary tree. Other trees will be ingnored.*
+**The summary tree file needs to have unique node labels for each node, e.g., in `summary_tree_numbered.tre`. Only the first tree will be read as the summary tree. Other trees will be ignored.*
 
-***Only one tip is going to be kept for each node in the constraint tree. This one tip is going to be selected by random. If there are single tips that you would like to keep aside from the list of nodes, you can list the tip name with the node numbers, e.g. 2,3,tip_name or 6,tip_name,20*
+***Only one tip is going to be kept for each node in the constraint tree. This one tip is going to be selected at random. If there are single tips that you would like to keep aside from the list of nodes, you can list the tip name with the node numbers, e.g., `2,3,tip_name` or `6,tip_name,20`*
 
 ****Only the tips listed in this file are going to show up in the constraint tree.*
 
 ### 6.2.2 Running the command with example dataset <!-- omit in toc -->
+If the tree that we would like to extract the constraint tree from is `summary_tree_numbered_pruned_wgd.tre` (provided) and we would like to extract the relationships right after WGD events, we could:
 
 ```console
-h2o constraint -s summary_tree_numbered.tre -n idk
+h2o constraint -s summary_tree_numbered_pruned_wgd.tre -n 141,132,115,103,77,101,87,2
 ```
-["141","132","115","103","77","101","87","2"]
-["Cornales_Nyssaceae_Nyssa_sinensis","Ericales_Balsaminaceae_Impatiens_hawkeri","Ericales_Ericaceae_Gaultheria_nummularioides","Ericales_Lecythidaceae_Lecythis_congestiflora","Ericales_Polemoniaceae_Linanthus_californicus","Ericales_Primulaceae_Primula_veris","Ericales_Sapotaceae_Sarcosperma_laurinum","Ericales_Sapotaceae_Manilkara_sapota","Ericales_Ebenaceae_Diospyros_lotus"]
+Or extract constraint tree based on a selected list of tips:
+```console
+h2o constraint -s summary_tree_numbered_pruned_wgd.tre -t constraint_tips.txt
+```
 
 ## 6.3 Output
 Unless specified otherwise, the current directory is the default output folder. Inside the folder, this new file will be created:
@@ -344,3 +353,12 @@ Unless specified otherwise, the current directory is the default output folder. 
 ```console
 astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.tre
 ```
+
+# References
+Carruthers, T., D. J. P. Gonçalves, P. Li, A. S. Chanderbali, C. W. Dick, P. W. Fritsch, D. A. Larson, et al. 2024. Repeated shifts out of tropical climates preceded by whole genome duplication. *New Phytologist* 244: 2561–2575.
+
+Feng, K., J. F. Walker, H. E. Marx, Y. Yang, S. F. Brockington, M. J. Moore, R. K. Rabeler, and S. A. Smith. 2024. The link between ancient whole‐genome duplications and cold adaptations in the Caryophyllaceae. *American Journal of Botany* e16350.
+
+Yang, Y., and Smith, S. A. (2014). Orthology inference in nonmodel organisms using transcriptomes and low-coverage genomes: improving accuracy and matrix occupancy for phylogenomics. *Molecular biology and evolution*, 31(11), 3081-3092.
+
+Yang, Y., Moore, M. J., Brockington, S. F., Mikenas, J., Olivieri, J., Walker, J. F., & Smith, S. A. (2018). Improved transcriptome sampling pinpoints 26 ancient and more recent polyploidy events in Caryophyllales, including two allopolyploidy events. *New Phytologist*, 217(2), 855-870.

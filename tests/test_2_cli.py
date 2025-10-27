@@ -26,7 +26,7 @@ def test_no_subcommand(monkeypatch, capsys):
 def test_infer_ortho_main(monkeypatch):
     """Test the main function for the infer_ortho command. See if infer_orthology.py is being ran correctly."""
 
-    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre"]
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre", "-od", "tests/test_data/processed_trees"]
     monkeypatch.setattr(sys, "argv", test_args)
     
     cli.main()
@@ -54,7 +54,7 @@ def test_infer_ortho_only_pruning(monkeypatch):
 def test_infer_ortho_only_no_pruning(monkeypatch):
     """Test pruning options"""
 
-    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre", "-np"]
+    test_args = ["h2o", "infer_ortho", "-t", "tests/test_data/homolog_trees", "-o", "o", "-e", ".tre", "-np","-od", "tests/test_data/processed_trees"]
     monkeypatch.setattr(sys, "argv", test_args)
     
     cli.main()

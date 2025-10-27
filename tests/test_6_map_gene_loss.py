@@ -38,8 +38,9 @@ def test_map_gene_loss():
         homolog_tree_dir="tests/test_data/homolog_trees",
         outgroup_list="o",
         tree_file_ending=".tre",
-        min_dupl_overlap=3,
-        output_directory=None,
+        min_dupl_tip_overlap=None,
+        min_dupl_percentage_overlap=None,
+        output_directory="tests/test_data/processed_trees",
         no_pruning=False,
         just_pruning=False
     )
@@ -48,14 +49,14 @@ def test_map_gene_loss():
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         species_tree_file="tests/test_data/species.tre",
-        output_directory=None
+        output_directory="tests/test_data/other_output/"
     )
     map_duplications.main(args)
 
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
-        output_directory=None,
-        duplication_counts_dir=None,
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/",
         wgd_nodes="3,1"
     )
     map_gene_loss.main(args)

@@ -13,7 +13,6 @@ from h2o.utils import (
 )
 import os
 import time
-from pathlib import Path
 
 def number_all_nodes(tree,output_folder):
     """
@@ -72,7 +71,7 @@ def map_dup(dup_tree,node_numbers,sp_tree_leaf_cache,tsv_file,tree_file):
             # Optimize bipartition matching with early termination
             best_match = None
             best_size = float('inf')
-            
+        
             for node_label in sp_tree_leaf_cache:
                 node_ingroup_tips = sp_tree_leaf_cache[node_label]
                 node_outgroup_tips = all_sp_tree_tips - node_ingroup_tips
@@ -81,7 +80,6 @@ def map_dup(dup_tree,node_numbers,sp_tree_leaf_cache,tsv_file,tree_file):
                     if bipartition_size < best_size:
                         best_size = bipartition_size
                         best_match = node_label
-
             if best_match is None:
                 node_numbers["not_found"] += 1
                 continue
@@ -105,7 +103,7 @@ def main(args):
     processed_tree_folder = check_path(args.processed_tree_dir) + "unpruned/"
     processed_tree_folder = check_path(processed_tree_folder,error_if_not_exists=True)
 
-    default_output_folder = str(Path(processed_tree_folder).parent.parent) + "/other_output/"
+    default_output_folder = "other_output/"
     output_folder = check_path(args.output_directory,default_path=default_output_folder,create_if_not_exists=True)
 
     with open(species_tree_file,"r") as f:

@@ -13,7 +13,6 @@ from h2o.utils import (
 from h2o import tree_reader as t
 import sys
 import time
-from pathlib import Path
 
 def get_missing_tips(dup_tree,leaf_cache,wgd_tips_dict,wgd_nodes):
     """
@@ -84,7 +83,7 @@ def main(args):
     processed_tree_folder = check_path(args.processed_tree_dir) + "unpruned/"
     processed_tree_folder = check_path(processed_tree_folder,error_if_not_exists=True)
 
-    default_output_folder = str(Path(processed_tree_folder).parent.parent) + "/other_output/"
+    default_output_folder = "other_output/"
     output_folder = check_path(args.output_directory,default_path=default_output_folder,create_if_not_exists=True)
     
     wgd_nodes = args.wgd_nodes.split(",")
@@ -93,8 +92,8 @@ def main(args):
     except ValueError:
         print("Error: WGD node numbers must be integers.")
         sys.exit(2)
-    
-    default_dup_dir = str(Path(processed_tree_folder).parent.parent) + "/other_output/"
+
+    default_dup_dir = "other_output/"
     duplication_counts_dir = check_path(args.duplication_counts_dir,default_path=default_dup_dir,error_if_not_exists=True)
 
     duplication_counts_file = check_path(duplication_counts_dir + "duplication_counts.tsv",is_folder=False,error_if_not_exists=True)

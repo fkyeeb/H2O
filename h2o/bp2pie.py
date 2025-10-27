@@ -83,7 +83,10 @@ def main(args):
         if args.pie_option:
             pie = "[&pie=" + nums[0] +","+ nums[1] +","+ nums[2] + "]"
         else:
-            pie = "[&pie=" + nums[0] +","+ nums[1] + "]"
+            if int(nums[0]) + int(nums[1]) == 0:
+                pie = ""
+            else:
+                pie = "[&pie=" + nums[0] +","+ nums[1] + "]"
         pies[node_number] = pie
 
     with open(output_directory + "gokstad_pie.tre","w") as out:

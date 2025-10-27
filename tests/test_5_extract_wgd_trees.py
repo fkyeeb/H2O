@@ -39,9 +39,8 @@ def test_extract_wgd_trees():
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         wgd_nodes="3",
-        duplication_counts_file=None,
-        output_directory=None,
-        duplication_counts_dir=None
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/"
     )
     extract_wgd_trees.main(args)
 
@@ -59,9 +58,8 @@ def test_wgd_node_error(capsys):
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         wgd_nodes="3.4",
-        duplication_counts_file=None,
-        output_directory=None,
-        duplication_counts_dir=None
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/"
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
@@ -76,9 +74,8 @@ def test_wgd_node_out_of_range(capsys):
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         wgd_nodes="8",
-        duplication_counts_file=None,
-        output_directory=None,
-        duplication_counts_dir=None
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/"
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
@@ -95,9 +92,8 @@ def test_no_pruned_tree_folder(capsys):
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         wgd_nodes="3",
-        duplication_counts_file=None,
-        output_directory=None,
-        duplication_counts_dir=None
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/"
     )
     extract_wgd_trees.main(args)
 
@@ -112,9 +108,8 @@ def test_no_ortholog_tree_folder(capsys):
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         wgd_nodes="3",
-        duplication_counts_file=None,
-        output_directory=None,
-        duplication_counts_dir=None
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/"
     )
     with pytest.raises(SystemExit) as exc_info:
         extract_wgd_trees.main(args)
