@@ -43,14 +43,14 @@ def check_path(path,is_folder=True,default_path=None,error_if_not_exists=False,c
     
     return path
 
-def precompute_leaf_names_number_nodes(tree,use_label=False,label=False):
+def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_set=True):
     """
     Pre-compute leaf names for all nodes and number all nodes
     node number is stored in node.cache_label
 
     :param [Node] tree: root node of the tree
     :param bool label: whether to put numbers as node.label
-    :return [dict]: dictionary with node numbers as keys and tips [list] as values
+    :return [dict]: dictionary with node numbers as keys and tips [list] or set() as values
     """
     leaf_cache = {}
     num = 0
@@ -62,7 +62,10 @@ def precompute_leaf_names_number_nodes(tree,use_label=False,label=False):
                     node.label = node.cache_label
             else:
                 node.cache_label = node.label
-            leaf_cache[node.cache_label] = set(node.lvsnms())
+            if return_set:
+                leaf_cache[node.cache_label] = set(node.lvsnms())
+            else:
+                leaf_cache[node.cache_label] = node.lvsnms()
             num += 1
     return leaf_cache
 

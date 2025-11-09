@@ -7,5 +7,6 @@ __all__ = [
     "map_duplications",
     "extract_wgd_trees",
     "map_gene_loss",
-    "bp2pie"
+    "bp2pie",
+    "extract_constraint_tree"
 ]

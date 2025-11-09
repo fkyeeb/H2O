@@ -1,0 +1,6 @@
+...
+TREES WITH CONFLICT (FIRST), CONCORDANCE (SECOND), UNSUPPORTED (THIRD), PROPS AFTER
+(o,((e,f),((a,b),(c,d))));
+(o,((e,f)2,((a,b)2,(c,d)2)2)2);
+(o,((e,f)2,((a,b)2,(c,d)2)2)2);
+...

@@ -17,9 +17,9 @@ def cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning):
             f.write("#!/bin/bash\n\n")
             for i, tree in enumerate(wgd_trees):
                 if i == 0:
-                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "_ortho[0-9].tre > " + output_directory + "ASTRAL_in_" + pruning + "_wgd_trees.tre\n")
+                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre > " + output_directory + "ASTRAL_in_" + pruning + "_wgd.tre\n")
                 else:
-                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "_ortho[0-9].tre >> " + output_directory + "ASTRAL_in_" + pruning + "_wgd_trees.tre\n")
+                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre >> " + output_directory + "ASTRAL_in_" + pruning + "_wgd.tre\n")
         run_shell_command("bash " + output_directory + "cat_" + pruning + "_wgd_trees.sh")  
         return True
     else:
@@ -60,7 +60,7 @@ def main(args):
 
             # Check if any wgd_node index is out of range for the current line
             if any(node >= len(splt) or node < 0 for node in wgd_nodes):
-                print("Error: WGD node numbers provided is out of range for the summary tree.")
+                print("Error: WGD node numbers provided is out of range for the consensus tree.")
                 sys.exit(2)
 
             if any(int(splt[node]) > 0 for node in wgd_nodes):

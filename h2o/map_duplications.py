@@ -17,17 +17,17 @@ import time
 def number_all_nodes(tree,output_folder):
     """
     Give each node a number
-    Writes a new summary tree with node numbers
+    Writes a new consensus tree with node numbers
     And also writes the bipartitions of the tree
 
-    :param [Node] tree: root node of the summary tree
+    :param [Node] tree: root node of the consensus tree
     :param str output_folder: output directory path
     :return [dict]: dictionary with node numbers as keys and to store dupl counts as values later
     :return [dict]: dictionary with node labels as keys and tips [list] as values
     :return [file]: tsv file handle for continued writing
     """
 
-    tf = open(output_folder + "summary_tree_numbered" + ".tre", 'w')
+    tf = open(output_folder + "consensus_tree_numbered" + ".tre", 'w')
     tsv_file = open(output_folder + "duplication_counts" + ".tsv", 'w')
     tsv_file.write("tree\t")
     
@@ -125,7 +125,7 @@ def main(args):
     tsv_file.close()
 
     # Writes numbers of gene duplications at each node in the numbered species tree
-    with open(output_folder + "summary_tree_numbered" + ".tre", 'a') as file:
+    with open(output_folder + "consensus_tree_numbered" + ".tre", 'a') as file:
         for node in sp_tree.iternodes():
             if not node.istip and node.label != "":
                 node.label = str(node_numbers[node.label])

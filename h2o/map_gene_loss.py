@@ -97,7 +97,7 @@ def main(args):
     duplication_counts_dir = check_path(args.duplication_counts_dir,default_path=default_dup_dir,error_if_not_exists=True)
 
     duplication_counts_file = check_path(duplication_counts_dir + "duplication_counts.tsv",is_folder=False,error_if_not_exists=True)
-    numbered_tree_file = check_path(duplication_counts_dir + "summary_tree_numbered.tre",is_folder=False,error_if_not_exists=True)
+    numbered_tree_file = check_path(duplication_counts_dir + "consensus_tree_numbered.tre",is_folder=False,error_if_not_exists=True)
 
     print("------------------------------------------------------------\n")
     print(time.ctime() + "\n")
@@ -126,7 +126,7 @@ def main(args):
             tree_name = splt.pop(0)
 
             if any(int(node) >= len(splt) or int(node) < 0 for node in wgd_nodes):
-                print("Error: WGD node numbers provided is out of range for the summary tree.")
+                print("Error: WGD node numbers provided is out of range for the consensus tree.")
                 sys.exit(2)
             
             wgd_node_in_this_tree = [node for node in wgd_nodes if int(splt[int(node)]) > 0]

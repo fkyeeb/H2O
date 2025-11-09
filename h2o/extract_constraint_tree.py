@@ -29,22 +29,22 @@ def extract_constraint_tree_by_tips(tree,tips2keep):
             
 
 def main(args):
-    summary_tree_file = check_path(args.summary_tree_file,is_folder=False,error_if_not_exists=True)
+    consensus_tree_file = check_path(args.consensus_tree_file,is_folder=False,error_if_not_exists=True)
     output_directory = check_path(args.output_directory,default_path="./",create_if_not_exists=True)
     
-    with open(summary_tree_file,"r") as f:
-        summary_tree = t.read_tree_string(f.readline().strip())
+    with open(consensus_tree_file,"r") as f:
+        consensus_tree = t.read_tree_string(f.readline().strip())
     
     # option 1: enter nodes
     if args.nodes:
         nodes2keep = args.nodes.split(",")
-        tips2keep = randomly_select_tip_in_clade(summary_tree,nodes2keep)
+        tips2keep = randomly_select_tip_in_clade(consensus_tree,nodes2keep)
     elif args.tips_file:
         with open(args.tips_file,"r") as f:
             tips2keep = f.readlines()
             tips2keep = [line.strip() for line in tips2keep]
     
-    extract_constraint_tree_by_tips(summary_tree,tips2keep)
+    extract_constraint_tree_by_tips(consensus_tree,tips2keep)
 
     with open(output_directory + "constraint_tree.tre","w") as f:
-        f.write(summary_tree.get_newick_repr(showbl=True) + ";\n")
+        f.write(consensus_tree.get_newick_repr(showbl=True) + ";\n")

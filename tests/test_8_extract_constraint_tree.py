@@ -24,7 +24,7 @@ def test_parse_arguments(monkeypatch):
     args = cli.parse_arguments()
     args.func(args)
 
-    assert captured_args.summary_tree_file == "tests/test_data/species.tre"
+    assert captured_args.consensus_tree_file == "tests/test_data/species.tre"
     assert captured_args.nodes == "141,132,115,103,77,101,87,2"
     assert captured_args.output_directory == "tests/test_data/other_output"
 
@@ -41,7 +41,7 @@ def test_parse_arguments(monkeypatch):
 def test_extract_constraint_tree_node():
     """Test the extract_constraint_tree function"""
     args = argparse.Namespace(
-        summary_tree_file="bp_summary_tree_numbered.tre",
+        consensus_tree_file="bp_consensus_tree_numbered.tre",
         nodes="4,5,o,2",
         output_directory=None,
         tips_file=None
@@ -62,7 +62,7 @@ def test_extract_constraint_tree_node():
 def test_extract_constraint_tree_tip():
     """Test the extract_constraint_tree function"""
     args = argparse.Namespace(
-        summary_tree_file="tests/test_data/other_output/bp_summary_tree_numbered.tre",
+        consensus_tree_file="tests/test_data/other_output/bp_consensus_tree_numbered.tre",
         nodes=None,
         tips_file="tests/test_data/tips2keep.txt",
         output_directory="tests/test_data/other_output"

@@ -27,9 +27,8 @@ def check_outgroup_status(filename,outgroup,all_tips):
     If so, skip the tree for now.
 
     :param filename: name of the tree file
-    :param tree: root node of the tree
     :param outgroup: list of outgroups
-    :param leaf_cache: precomputed leaf names cache
+    :param all_tips: list of all tips in the tree
     :return: True if the outgroup is not duplicated, False otherwise
     :rtype: bool
     """
@@ -64,15 +63,16 @@ def locate_outgroup(file_name,tree,outgroup,leaf_cache):
     :rtype: Node, bool
     """
     # make sure to only save the biggest outgroup clade
-    all_tips = leaf_cache["0"]
     to_root = True
     for node in tree.iternodes(order="postorder"):
         if not node.istip:
             child_tips = leaf_cache[node.cache_label]
         else:
-            child_tips = set([node.label])
+            child_tips = [node.label]
         if node.parent != None:
-            other_tips = all_tips - child_tips
+            other_tip_counts = Counter(leaf_cache["0"]) - Counter(child_tips)
+            other_tips = set(other_tip_counts.elements())
+            child_tips = set(child_tips)
             if child_tips <= outgroup:
                 if other_tips.isdisjoint(outgroup):
                     if node.parent.parent == None:
@@ -117,7 +117,7 @@ def root_tree(file_name,tree,outgroup,leaf_cache):
     outgroup_node,to_root = locate_outgroup(file_name,tree,outgroup,leaf_cache)
 
     if isinstance(outgroup_node,str):
-        # when outgroup is polyphyletic
+        # when outgroup is polyphyletic, print the error message
         print(outgroup_node)
         return None
     elif not to_root:
@@ -209,8 +209,11 @@ def label_duplication_node(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap
     """
     for node in tree.iternodes():
         if not node.istip:
-            # pruning happens at the same time as the duplication check
-            check_prune_dup(node,min_dupl_tip_overlap,min_dupl_percentage_overlap,bool,leaf_cache)
+            if len(node.children) == 2:
+                # pruning happens at the same time as the duplication check
+                check_prune_dup(node,min_dupl_tip_overlap,min_dupl_percentage_overlap,bool,leaf_cache)
+            else:
+                print("Warning: Node with " + str(len(node.children)) + " children found.\n")
         
 def get_orthologs(root):
     """
@@ -291,7 +294,7 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_ove
         tree.children[1].add_child(child3)
 
     # Precompute leaf names for efficiency
-    leaf_cache = precompute_leaf_names_number_nodes(tree)
+    leaf_cache = precompute_leaf_names_number_nodes(tree,return_set=False)
 
     if check_outgroup_status(tree_name,outgroup_list,leaf_cache["0"]):
         rooted_tree = root_tree(tree_name,tree,outgroup_list,leaf_cache)
@@ -336,7 +339,7 @@ def main(args):
     if args.min_dupl_tip_overlap:
         min_dupl_tip_overlap = args.min_dupl_tip_overlap
     else:
-        min_dupl_tip_overlap = 3
+        min_dupl_tip_overlap = 2
     if args.min_dupl_percentage_overlap:
         min_dupl_percentage_overlap = args.min_dupl_percentage_overlap
     else:
@@ -370,6 +373,7 @@ def main(args):
     # Filter tree files more efficiently using list comprehension
     tree_files = [f for f in os.listdir(tree_folder) if f.endswith(tree_file_ending)]
     
+    all_tree_count = len(tree_files)
     for tree_file in tree_files:
         print("Processing tree: " + tree_file + "\n")
         with open(tree_folder + tree_file,"r") as f:
@@ -377,10 +381,21 @@ def main(args):
         tree_name = tree_file[:-len(tree_file_ending)]
         process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning)
     
+    print("------------------------------------------------------------\n")
     print("Output trees are saved in " + output_directory + "\n")
+
+    process_trees_count = len([f for f in os.listdir(output_directory) if f.endswith(".tre")])
 
     end_time = time.time()
     elapsed = transform_elapsed_time(start_time,end_time)
-    print(f"Done with orthology inference. Total time elapsed: {elapsed}")
+    print(f"Done with orthology inference. Total time elapsed: {elapsed}\n")
+    print(f"Total homolog trees read: {all_tree_count}\n")
+    print(f"Total homolog trees processed: {process_trees_count}\n")
+    if pruning != True:
+        unpruned_ortho_count = len([f for f in os.listdir(output_directory + "unpruned/") if "ortho" in f])
+        print(f"Total unpruned ortholog trees produced: {unpruned_ortho_count}\n")
+    if pruning != False:
+        pruned_ortho_count = len([f for f in os.listdir(output_directory + "pruned/") if "ortho" in f])
+        print(f"Total pruned ortholog trees produced: {pruned_ortho_count}")
 
-    print("\n------------------------------------------------------------\n\n")
+    print("\n------------------------------------------------------------\n")

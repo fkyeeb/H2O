@@ -44,13 +44,13 @@ def test_extract_wgd_trees():
     )
     extract_wgd_trees.main(args)
 
-    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_unpruned_wgd_trees.tre')
-    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_pruned_wgd_trees.tre')
+    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_unpruned_wgd.tre')
+    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_pruned_wgd.tre')
 
     os.remove('tests/test_data/other_output/cat_unpruned_wgd_trees.sh')
     os.remove('tests/test_data/other_output/cat_pruned_wgd_trees.sh')
-    os.remove('tests/test_data/other_output/ASTRAL_in_unpruned_wgd_trees.tre')
-    os.remove('tests/test_data/other_output/ASTRAL_in_pruned_wgd_trees.tre')
+    os.remove('tests/test_data/other_output/ASTRAL_in_unpruned_wgd.tre')
+    os.remove('tests/test_data/other_output/ASTRAL_in_pruned_wgd.tre')
 
 def test_wgd_node_error(capsys):
     """Test the extract_wgd_trees function with wgd node error"""
@@ -82,7 +82,7 @@ def test_wgd_node_out_of_range(capsys):
     assert exc_info.value.code == 2
 
     captured = capsys.readouterr()
-    assert "Error: WGD node numbers provided is out of range for the summary tree." in captured.out
+    assert "Error: WGD node numbers provided is out of range for the consensus tree." in captured.out
 
 def test_no_pruned_tree_folder(capsys):
     """Test the extract_wgd_trees function with no ortholog tree folder"""
