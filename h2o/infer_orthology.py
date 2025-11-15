@@ -20,11 +20,12 @@ import sys
 import time
 from collections import Counter
 
-def check_outgroup_status(filename,outgroup,all_tips):
+def check_taxa_counts(filename,outgroup,all_tips):
     """
     This function checks if the outgroups are in the tree
     and if the outgroup + ingroup both duplicated. 
     If so, skip the tree for now.
+    Also skip if the tree have less than 3 ingroup taxa.
 
     :param filename: name of the tree file
     :param outgroup: list of outgroups
@@ -34,6 +35,12 @@ def check_outgroup_status(filename,outgroup,all_tips):
     """
     # record outgroup number
     outgroup_count = Counter(tip for tip in all_tips if tip in outgroup)
+    ingroup_count = set(tip for tip in all_tips if tip not in outgroup)
+
+    # check if there are at least 3 ingroup taxa
+    if len(ingroup_count) < 3:
+        print("Less than 3 ingroup taxa, " + filename + " is skipped.\n")
+        return False
 
     # check if outgroup exists in the tree
     if len(outgroup_count) == 0:
@@ -249,13 +256,15 @@ def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_di
     # remove node when there is only one child left
     if len(tree.children) == 1:
         tree = tree.children[0]
-    for n in tree.iternodes():
+    for n in tree.iternodes(order="postorder"):
         if len(n.children) == 1:
             p = n.parent
             if p != None:
                 n.children[0].length += n.length
                 p.add_child(n.children[0])
                 p.remove_child(n)
+            else:
+                tree = n.children[0]
 
     with open(output_directory + tree_name + "_rooted_processed.tre","w") as f:
         f.write(tree.get_newick_repr(showbl=True) + ";\n")
@@ -296,7 +305,7 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_ove
     # Precompute leaf names for efficiency
     leaf_cache = precompute_leaf_names_number_nodes(tree,return_set=False)
 
-    if check_outgroup_status(tree_name,outgroup_list,leaf_cache["0"]):
+    if check_taxa_counts(tree_name,outgroup_list,leaf_cache["0"]):
         rooted_tree = root_tree(tree_name,tree,outgroup_list,leaf_cache)
     else:
         # if less than 2 ourgroups or if outgroup is duplicated, skip the tree

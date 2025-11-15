@@ -12,7 +12,8 @@ from h2o import (
     extract_wgd_trees,
     map_gene_loss,
     bp2pie,
-    extract_constraint_tree
+    extract_constraint_tree,
+    rmtips
 )
 
 def infer_ortho_main(args):
@@ -50,6 +51,12 @@ def extract_constraint_tree_main(args):
     direct to extract_constraint_tree
     """
     extract_constraint_tree.main(args)
+
+def rmtips_main(args):
+    """
+    direct to rmtips
+    """
+    rmtips.main(args)
 
 def parse_arguments():
     """
@@ -118,6 +125,19 @@ def parse_arguments():
     nodes_tips_group.add_argument("-t", "--tips_file", type=str, help="File containing the tips to keep, each line is a tip")
     
     parser_extract_constraint_tree.set_defaults(func=extract_constraint_tree_main)
+
+    # Subcommand: h2o rmtips
+    parser_rmtips = subparsers.add_parser("rmtips", help="Remove specified tips from trees")
+    parser_rmtips.add_argument("-t", "--tree_dir", type=str, help="Folder containing trees", required=True)
+    parser_rmtips.add_argument("-od", "--output_directory", type=str, help="Output directory", required=True)
+    parser_rmtips.add_argument("-e", "--tree_file_ending", type=str, help="File ending for tree files",required=True)
+    parser_rmtips.add_argument("-m", "--minimum_taxa", type=str, help="Minimum number of taxa in output tree, default is 5")
+
+    rm_or_save_group = parser_rmtips.add_mutually_exclusive_group(required=True)
+    rm_or_save_group.add_argument("-rm", "--tips2remove", type=str, help="File containing tips to remove, one per line")
+    rm_or_save_group.add_argument("-sv", "--tips2save", type=str, help="File containing tips to save, one per line")
+
+    parser_rmtips.set_defaults(func=rmtips_main)
 
     # version
     try:

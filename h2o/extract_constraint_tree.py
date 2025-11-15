@@ -19,14 +19,15 @@ def extract_constraint_tree_by_tips(tree,tips2keep):
             if node.label not in tips2keep:
                 node.prune()
     
-    for n in tree.iternodes():
+    for n in tree.iternodes(order="postorder"):
         if len(n.children) == 1:
             p = n.parent
             if p != None:
                 n.children[0].length += n.length
                 p.add_child(n.children[0])
                 p.remove_child(n)
-            
+            else:
+                tree = n.children[0]
 
 def main(args):
     consensus_tree_file = check_path(args.consensus_tree_file,is_folder=False,error_if_not_exists=True)
