@@ -43,7 +43,7 @@ def check_path(path,is_folder=True,default_path=None,error_if_not_exists=False,c
     
     return path
 
-def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_set=True):
+def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_set=False):
     """
     Pre-compute leaf names for all nodes and number all nodes
     node number is stored in node.cache_label
@@ -109,6 +109,21 @@ def get_deepest_dup_parent(node):
 
     while current_node.parent != None:
         if current_node.parent.label != "D":
+            return current_node
+        else:
+            current_node = current_node.parent
+
+    return current_node
+
+def get_deepest_non_dup_parent(node):
+    """
+    This function takes a node and returns its deepest non-duplication parent.
+    If node has no parent, return node
+    """
+    current_node = node
+
+    while current_node.parent != None:
+        if current_node.parent.label == "D":
             return current_node
         else:
             current_node = current_node.parent

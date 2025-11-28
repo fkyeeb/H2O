@@ -27,9 +27,9 @@ def process_bp_file(bp_output_file,out,data,first=True):
                 unsup_line = file.readline().strip()
                 unsup_tree = process_bp_tree(unsup_line,out)
     
-    bp_leaf_cache = precompute_leaf_names_number_nodes(conflict_tree)
-    precompute_leaf_names_number_nodes(concord_tree)
-    precompute_leaf_names_number_nodes(unsup_tree)
+    bp_leaf_cache = precompute_leaf_names_number_nodes(conflict_tree,return_set=True)
+    precompute_leaf_names_number_nodes(concord_tree,return_set=True)
+    precompute_leaf_names_number_nodes(unsup_tree,return_set=True)
 
     for node in conflict_tree.iternodes():
         if not node.istip:

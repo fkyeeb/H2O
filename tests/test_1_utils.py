@@ -39,7 +39,7 @@ def test_precompute_leaf_names_number_nodes():
     """Test the precompute_leaf_names_number_nodes function"""
 
     tree = t.read_tree_string("((a,b),c);")
-    leaf_cache = utils.precompute_leaf_names_number_nodes(tree)
+    leaf_cache = utils.precompute_leaf_names_number_nodes(tree,return_set=True)
 
     assert leaf_cache == {"0": {"a", "b", "c"}, '1': {'a', 'b'}}
 

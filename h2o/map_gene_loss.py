@@ -8,7 +8,8 @@ from h2o.utils import (
     check_path,
     precompute_leaf_names_number_nodes,
     transform_elapsed_time,
-    get_deepest_dup_parent
+    get_deepest_dup_parent,
+    get_deepest_non_dup_parent
 )
 from h2o import tree_reader as t
 import sys
@@ -33,15 +34,17 @@ def get_missing_tips(dup_tree,leaf_cache,wgd_tips_dict,wgd_nodes):
     for node in dup_tree.iternodes():
         if node.label == "D":
             deepest_dup_parent = get_deepest_dup_parent(node)
-            dup_tips = leaf_cache[deepest_dup_parent.cache_label]
-            other_dup_tips = all_dup_tips - dup_tips
+            deepest_non_dup_parent = get_deepest_non_dup_parent(deepest_dup_parent)
+            dup_tips = set(leaf_cache[deepest_dup_parent.cache_label])
+            deepest_non_dup_parent_tips = set(leaf_cache[deepest_non_dup_parent.cache_label])
+            other_dup_tips = deepest_non_dup_parent_tips - dup_tips
 
             for wgd_node in wgd_nodes:
                 wgd_tips = wgd_tips_dict[wgd_node][0]
                 wgd_other_tips = wgd_tips_dict[wgd_node][1]
                 if dup_tips <= wgd_tips and other_dup_tips <= wgd_other_tips:
                     for child in node.children:
-                        node_missing_tips = leaf_cache[node.cache_label] - leaf_cache[child.cache_label]
+                        node_missing_tips = set(leaf_cache[node.cache_label]) - set(leaf_cache[child.cache_label])
                         if len(node_missing_tips) > 0:
                             missing_tips.append(node_missing_tips)
                             wgd_node_output.append(wgd_node)
@@ -88,7 +91,8 @@ def main(args):
     
     wgd_nodes = args.wgd_nodes.split(",")
     try:
-        wgd_nodes = [node for node in wgd_nodes]
+        for node in wgd_nodes:
+            int(node)
     except ValueError:
         print("Error: WGD node numbers must be integers.")
         sys.exit(2)
@@ -107,7 +111,7 @@ def main(args):
         numbered_tree = t.read_tree_string(f.readline().strip())
     
     gene_loss_node_counts = {}
-    sp_tree_leaf_cache = precompute_leaf_names_number_nodes(numbered_tree,use_label=True)
+    sp_tree_leaf_cache = precompute_leaf_names_number_nodes(numbered_tree,use_label=True,return_set=True)
     all_sp_tree_tips = sp_tree_leaf_cache["0"]
     wgd_tips_dict = {}
     for wgd_node in wgd_nodes:

@@ -9,7 +9,8 @@ from h2o.utils import (
     check_path,
     precompute_leaf_names_number_nodes,
     transform_elapsed_time,
-    get_deepest_dup_parent
+    get_deepest_dup_parent,
+    get_deepest_non_dup_parent
 )
 import os
 import time
@@ -34,7 +35,7 @@ def number_all_nodes(tree,output_folder):
     node_numbers = {}
     
     # Pre-compute leaf names to avoid repeated lvsnms() calls
-    leaf_cache = precompute_leaf_names_number_nodes(tree,label=True)
+    leaf_cache = precompute_leaf_names_number_nodes(tree,label=True,return_set=True)
     
     for node_label in leaf_cache:
         node_numbers[node_label] = 0
@@ -59,14 +60,15 @@ def map_dup(dup_tree,node_numbers,sp_tree_leaf_cache,tsv_file,tree_file):
     
     # Pre-compute leaf names to avoid repeated lvsnms() calls
     leaf_cache = precompute_leaf_names_number_nodes(dup_tree)
-    all_dup_tips = set(leaf_cache["0"])
     all_sp_tree_tips = set(sp_tree_leaf_cache["0"])
 
     for node in dup_tree.iternodes():
         if node.label == "D":
             deepest_dup_parent = get_deepest_dup_parent(node)
+            deepest_non_dup_parent = get_deepest_non_dup_parent(deepest_dup_parent)
             dup_tips = set(leaf_cache[deepest_dup_parent.cache_label])
-            other_dup_tips = all_dup_tips - dup_tips
+            deepest_non_dup_parent_tips = set(leaf_cache[deepest_non_dup_parent.cache_label])
+            other_dup_tips = deepest_non_dup_parent_tips - dup_tips
 
             # Optimize bipartition matching with early termination
             best_match = None
@@ -133,6 +135,6 @@ def main(args):
 
     end_time = time.time()
     elapsed = transform_elapsed_time(start_time,end_time)
-    print(f"Done with duplication mapping. Total time elapsed: {elapsed}")
+    print(f"\nDone with duplication mapping. Total time elapsed: {elapsed}")
 
     print("\n------------------------------------------------------------\n\n")

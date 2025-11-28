@@ -316,7 +316,7 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_ove
             f.write(rooted_tree.get_newick_repr(showbl=True) + ";\n")
 
         # Precompute leaf names for the rooted tree
-        rooted_leaf_cache = precompute_leaf_names_number_nodes(rooted_tree)
+        rooted_leaf_cache = precompute_leaf_names_number_nodes(rooted_tree,return_set=True)
 
         # label duplication node and prune missing taxa
         rooted_tree_2prune = copy.deepcopy(rooted_tree)

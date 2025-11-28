@@ -13,7 +13,8 @@ from h2o import (
     map_gene_loss,
     bp2pie,
     extract_constraint_tree,
-    rmtips
+    rmtips,
+    check_wgd_comp
 )
 
 def infer_ortho_main(args):
@@ -57,6 +58,12 @@ def rmtips_main(args):
     direct to rmtips
     """
     rmtips.main(args)
+
+def check_wgd_comp_main(args):
+    """
+    direct to check_wgd_comp
+    """
+    check_wgd_comp.main(args)
 
 def parse_arguments():
     """
@@ -138,6 +145,16 @@ def parse_arguments():
     rm_or_save_group.add_argument("-sv", "--tips2save", type=str, help="File containing tips to save, one per line")
 
     parser_rmtips.set_defaults(func=rmtips_main)
+
+    # Subcommand: h2o wgd_comp
+    parser_wgd_comp = subparsers.add_parser("wgd_comp", help="Check WGD and some near nodes")
+    parser_wgd_comp.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
+    parser_wgd_comp.add_argument("-n", "--wgd_node", type=str, help="the WGD node", required=True)
+    parser_wgd_comp.add_argument("-cn", "--connected_nodes", type=str, help="the connected nodes of WGD that have a lot of gene duplications, separated by commas, no spaces")
+    parser_wgd_comp.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output directory in the current directory")
+    parser_wgd_comp.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating the other_output/ directory in the current directory, create if not exist")
+    
+    parser_wgd_comp.set_defaults(func=check_wgd_comp_main)
 
     # version
     try:
