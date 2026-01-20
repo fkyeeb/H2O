@@ -32,6 +32,9 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.min_dupl_tip_overlap == 3
     assert captured_args.min_dupl_percentage_overlap == 0.5
     assert captured_args.output_directory == "tests/test_data/ortholog_trees"
+    assert captured_args.no_pruning == False
+    assert captured_args.just_pruning == False
+    assert captured_args.id2sp_file == None
 
     # Restore the original function
     monkeypatch.setattr(infer_orthology, 'main', original_main)
@@ -47,7 +50,8 @@ def test_infer_ortho():
         min_dupl_percentage_overlap=None,
         output_directory="tests/test_data/processed_trees",
         no_pruning=False,
-        just_pruning=False
+        just_pruning=False,
+        id2sp_file=None
     )
     infer_orthology.main(args)
     
@@ -79,7 +83,8 @@ def test_infer_ortho_rooting(capsys):
         min_dupl_percentage_overlap=None,
         output_directory="tests/test_data/processed_trees_rooting",
         no_pruning=False,
-        just_pruning=False
+        just_pruning=False,
+        id2sp_file=None
     )
     infer_orthology.main(args)
 
@@ -99,3 +104,27 @@ def test_infer_ortho_rooting(capsys):
     
     # remove all the output files created by unit test
     shutil.rmtree('tests/test_data/processed_trees_rooting')
+
+def test_infer_ortho_ks():
+    """Test id2sp procedure"""
+
+    args = argparse.Namespace(
+        homolog_tree_dir="tests/test_data/homolog_trees_ks",
+        outgroup_list="o",
+        tree_file_ending=".tre",
+        min_dupl_tip_overlap=None,
+        min_dupl_percentage_overlap=None,
+        output_directory="tests/test_data/processed_trees_ks",
+        no_pruning=False,
+        just_pruning=False,
+        id2sp_file="tests/test_data/id2sp.txt"
+    )
+    infer_orthology.main(args)
+
+    with open("tests/test_data/processed_trees_ks/dup_rooted.tre", "r") as f:
+        assert f.read() == "(o:0.0,(((a:0.0,b:0.0):0.0,d:0.0):0.0,((a:0.0,b:0.0):0.0,c:0.0):0.0):0.0):0.0;\n"
+    with open("tests/test_data/processed_trees_ks/unpruned/dup_rooted_processed_id.tre", "r") as f:
+        assert f.read() == "(o@12:0.0,(((a@123:0.0,b@123:0.0):0.0,d@123:0.0):0.0,((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0)D:0.0):0.0;\n"
+
+    # remove all the output files created by unit test
+    # shutil.rmtree('tests/test_data/processed_trees_ks')

@@ -27,6 +27,7 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.processed_tree_dir == "tests/test_data/processed_trees"
     assert captured_args.species_tree_file == "tests/test_data/species.tre"
     assert captured_args.output_directory == "tests/test_data/map_dupl_output"
+    assert captured_args.id2sp_file is None
 
     monkeypatch.setattr(map_duplications, 'main', original_main)
 
@@ -36,7 +37,8 @@ def test_map_dupl():
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         output_directory="tests/test_data/map_dupl_output",
-        species_tree_file="tests/test_data/species.tre"
+        species_tree_file="tests/test_data/species.tre",
+        id2sp_file=None
     )
     map_duplications.main(args)
 
@@ -46,11 +48,25 @@ def test_map_dupl():
             if "dup_bl" in line:
                 assert line == 'dup_bl\t0\t0\t0\t3\t0\t0\t0\t\n'
                 break
+    with open('tests/test_data/map_dupl_output/duplication_counts_ils_corrected.tsv', 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if "dup_loss" in line:
+                assert line == 'dup_loss\t0\t0\t0\t1\t0\t0\t0\t\n'
+                break
 
     with open('tests/test_data/map_dupl_output/consensus_tree_numbered.tre', 'r') as f:
-        assert f.read() == '(o:0.0,((e:0.0,f:0.0)2:0.0,((a:0.0,b:0.0)4:0.0,(c:0.0,d:0.0)5:0.0)3:0.0)1:0.0)0:0.0;\n(o:0.0,((e:0.0,f:0.0)0:0.0,((a:0.0,b:0.0)0:0.0,(c:0.0,d:0.0)1:0.0)4:0.0)2:0.0)0:0.0;\n'
-
+        assert f.read() == '(o:0.0,((e:0.0,f:0.0)2:0.0,((a:0.0,b:0.0)4:0.0,(c:0.0,d:0.0)5:0.0)3:0.0)1:0.0)0:0.0;\n(o:0.0,((e:0.0,f:0.0)0:0.0,((a:0.0,b:0.0)0:0.0,(c:0.0,d:0.0)1:0.0)5:0.0)2:0.0)0:0.0;\n(o:0.0,((e:0.0,f:0.0)0:0.0,((a:0.0,b:0.0)0:0.0,(c:0.0,d:0.0)2:0.0)6:0.0)0:0.0)0:0.0;\n'
+    with open('tests/test_data/map_dupl_output/duplication_tip_frequencies.tsv', 'r') as f:
+        for line in f:
+            if line.startswith("a\t"):
+                assert line == 'a\t0\t2.0\t-\t1.8\t0\t-\t\n'
+    with open('tests/test_data/map_dupl_output/duplication_tip_retention.tsv', 'r') as f:
+        for line in f:
+            if line.startswith("a\t"):
+                assert line == 'a\t0\t1.0\t-\t0.8\t0\t-\t\n'
     shutil.rmtree('tests/test_data/map_dupl_output')
+
 
 def test_map_dupl_no_output_directory():
     """Test the map_dupl function with no output directory"""
@@ -58,7 +74,8 @@ def test_map_dupl_no_output_directory():
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         species_tree_file="tests/test_data/species.tre",
-        output_directory="tests/test_data/other_output/"
+        output_directory="tests/test_data/other_output/",
+        id2sp_file=None
     )
     map_duplications.main(args)
 
@@ -66,3 +83,21 @@ def test_map_dupl_no_output_directory():
 
     # shutil.rmtree('tests/test_data/processed_trees')
     # shutil.rmtree('tests/test_data/other_output')
+
+def test_map_dupl_ks():
+    """Test the map_dupl function with ks output"""
+
+    args = argparse.Namespace(
+        processed_tree_dir="tests/test_data/processed_trees_ks",
+        output_directory="tests/test_data/map_dupl_ks_output",
+        species_tree_file="tests/test_data/species.tre",
+        id2sp_file="tests/test_data/id2sp.txt"
+    )
+    map_duplications.main(args)
+
+    with open('tests/test_data/map_dupl_ks_output/ks_pairs_ils_corrected.tsv', 'r') as f:
+        lines = f.readlines()
+        assert lines[3] == "4	dup_ils	a@123,a@345\n"
+
+    shutil.rmtree('tests/test_data/map_dupl_ks_output')
+    shutil.rmtree('tests/test_data/processed_trees_ks')

@@ -31,7 +31,7 @@
 `h2o` is designed for plant phylogenomic datasets that have putative WGDs, but is also compatible with datasets without putative ancient whole-genome duplications (WGD). Datasets that assume single-copy genes are not compatible.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove taxa that no longer retain both gene copies generated from WGD - subsequently refer to as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
+1. Remove taxa that no longer retain both gene copies generated from gene duplications - subsequently refer to as <u>*pruning*</u>  - implemented in [`infer_ortho`](#1-orthology-inference---h2o-infer_ortho)
 2. Select homolog trees that show the gene duplication from WGD, and only use ortholog trees from these homologs for species tree inference - implemented in [`extract_wgd_trees`](#3-extracting-trees-that-shows-gene-duplication-at-wgd-events---h2o-extract_wgd_trees)
 
 Most of the subcommands are not independent of each other. They usually require some results from the previous steps. If you are unsure what subcommands to use, the [README](README.md) file has some example workflows for the package.

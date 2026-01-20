@@ -249,13 +249,14 @@ def get_orthologs(root):
 
     return ortho_trees
 
-def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory,tree_name,bool,leaf_cache):
+def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory,tree_name,bool,leaf_cache,id2sp):
 
     label_duplication_node(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,bool,leaf_cache)
     
     # remove node when there is only one child left
     if len(tree.children) == 1:
         tree = tree.children[0]
+        tree.parent = None
     for n in tree.iternodes(order="postorder"):
         if len(n.children) == 1:
             p = n.parent
@@ -265,9 +266,18 @@ def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_di
                 p.remove_child(n)
             else:
                 tree = n.children[0]
+                tree.parent = None
 
     with open(output_directory + tree_name + "_rooted_processed.tre","w") as f:
         f.write(tree.get_newick_repr(showbl=True) + ";\n")
+    
+    if id2sp:
+        for n in tree.iternodes():
+            if n.istip:
+                n.label = n.cache_label
+
+        with open(output_directory + tree_name + "_rooted_processed_id.tre","w") as f:
+            f.write(tree.get_newick_repr(showbl=True) + ";\n")
 
     # get orthologs
     ortho_trees = get_orthologs(tree)
@@ -286,7 +296,7 @@ def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_di
         with open(filename, "w") as f:
             f.write(content)
 
-def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning):
+def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning,id2sp):
     # root tree
 
     # if tree is not rooted, root it arbitrarily first
@@ -303,7 +313,7 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_ove
         tree.children[1].add_child(child3)
 
     # Precompute leaf names for efficiency
-    leaf_cache = precompute_leaf_names_number_nodes(tree,return_set=False)
+    leaf_cache = precompute_leaf_names_number_nodes(tree,return_set=False,id2sp=id2sp)
 
     if check_taxa_counts(tree_name,outgroup_list,leaf_cache["0"]):
         rooted_tree = root_tree(tree_name,tree,outgroup_list,leaf_cache)
@@ -322,9 +332,9 @@ def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_ove
         rooted_tree_2prune = copy.deepcopy(rooted_tree)
 
         if pruning != False:
-            prune_or_not(rooted_tree_2prune,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory + "pruned/",tree_name,True,rooted_leaf_cache)
+            prune_or_not(rooted_tree_2prune,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory + "pruned/",tree_name,True,rooted_leaf_cache,id2sp)
         if pruning != True:
-            prune_or_not(rooted_tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory + "unpruned/",tree_name,False,rooted_leaf_cache)
+            prune_or_not(rooted_tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory + "unpruned/",tree_name,False,rooted_leaf_cache,id2sp)
 
 
 def main(args):
@@ -361,6 +371,12 @@ def main(args):
         pruning = False
     else: # do both pruning and no pruning
         pruning = "both"
+    
+    # id2sp file
+    if args.id2sp_file:
+        id2sp = check_path(args.id2sp_file,error_if_not_exists=True,is_folder=False)
+    else:
+        id2sp = None
 
     # read output folder
     default_output_folder =  "processed_trees/"
@@ -388,10 +404,10 @@ def main(args):
         with open(tree_folder + tree_file,"r") as f:
             tree = t.read_tree_string(f.readline().strip())
         tree_name = tree_file[:-len(tree_file_ending)]
-        process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning)
+        process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning,id2sp)
     
     print("------------------------------------------------------------\n")
-    print("Output trees are saved in " + output_directory + "\n")
+    print("Output trees write to " + output_directory + "\n")
 
     process_trees_count = len([f for f in os.listdir(output_directory) if f.endswith(".tre")])
 

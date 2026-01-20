@@ -42,14 +42,16 @@ def test_map_gene_loss():
         min_dupl_percentage_overlap=None,
         output_directory="tests/test_data/processed_trees",
         no_pruning=False,
-        just_pruning=False
+        just_pruning=False,
+        id2sp_file=None
     )
     infer_orthology.main(args)
 
     args = argparse.Namespace(
         processed_tree_dir="tests/test_data/processed_trees",
         species_tree_file="tests/test_data/species.tre",
-        output_directory="tests/test_data/other_output/"
+        output_directory="tests/test_data/other_output/",
+        id2sp_file=None
     )
     map_duplications.main(args)
 

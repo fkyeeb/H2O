@@ -43,7 +43,7 @@ def check_path(path,is_folder=True,default_path=None,error_if_not_exists=False,c
     
     return path
 
-def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_set=False):
+def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_set=False,return_children=False,id2sp=None):
     """
     Pre-compute leaf names for all nodes and number all nodes
     node number is stored in node.cache_label
@@ -54,6 +54,20 @@ def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_s
     """
     leaf_cache = {}
     num = 0
+    parent2children = {}
+
+    if id2sp:
+        with open(id2sp,"r") as f:
+            id2sp = {}
+            for line in f:
+                splt = line.strip().split("\t")
+                id2sp[splt[0]] = splt[1]
+        for node in tree.iternodes():
+            if node.istip:
+                ID = node.label.split("@")[0]
+                node.cache_label = node.label
+                node.label = id2sp[ID]
+
     for node in tree.iternodes():
         if not node.istip:
             if not use_label:
@@ -67,6 +81,18 @@ def precompute_leaf_names_number_nodes(tree,use_label=False,label=False,return_s
             else:
                 leaf_cache[node.cache_label] = node.lvsnms()
             num += 1
+
+    if return_children:
+        for node in tree.iternodes():
+            if not node.istip:
+                parent2children[node.cache_label] = []
+                for child in node.children:
+                    if child.istip:
+                        parent2children[node.cache_label].append(child.label)
+                    else:
+                        parent2children[node.cache_label].append(int(child.cache_label))
+        return leaf_cache,parent2children
+
     return leaf_cache
 
 def transform_elapsed_time(start_time,end_time):
@@ -129,3 +155,23 @@ def get_deepest_non_dup_parent(node):
             current_node = current_node.parent
 
     return current_node
+
+def get_tips_in_ascending_order(node):
+    """
+    return list of tree tips in ascending order
+    """
+    # Base case: this node is a tip
+    if node.istip:
+        return [node.label]
+
+    # Otherwise: this is an internal node with two children
+    child_results = []
+    for child in node.children:
+        tips = get_tips_in_ascending_order(child)
+        child_results.append((len(tips), tips))
+
+    # Sort children by number of tips (ascending)
+    child_results.sort(key=lambda x: x[0])
+
+    # Concatenate the tip lists in the sorted order
+    return child_results[0][1] + child_results[1][1]

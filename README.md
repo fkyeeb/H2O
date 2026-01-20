@@ -5,8 +5,8 @@
 
 - [Overview](#overview)
 - [Installation](#installation)
-  - [Install the most recent release with PyPI](#install-the-most-recent-release-with-pypi)
-  - [Build and install from the source](#build-and-install-from-the-source)
+  - [Install the most recent release with PyPI (not yet available)](#install-the-most-recent-release-with-pypi-not-yet-available)
+  - [Build and install from the source (github repo not yet public)](#build-and-install-from-the-source-github-repo-not-yet-public)
   - [Dependency](#dependency)
 - [Tutorial](#tutorial)
   - [Example workflows](#example-workflows)
@@ -24,13 +24,13 @@ The publication of `h2o` is still in prep.
 # Installation
 Installation should work the same way on macOS, Linux, and Windows. You can either install with PyPI or from the source.
 
-## Install the most recent release with PyPI
+## Install the most recent release with PyPI (not yet available)
 
 ```console
 pip install h2o-phy
 ```
 
-## Build and install from the source
+## Build and install from the source (github repo not yet public)
 
 `git clone` the repo to your local directory
 ```console
@@ -63,7 +63,7 @@ This package only requires Python version >= 3.8 to run, and no extra Python lib
 **User scenario**: I have a plant phylogenomic dataset with known WGD event(s), and these events are correlated with gene tree discordance. It is difficult to resolve the relationships right after WGD events, and I would like to explore alternative relationships.
 
 `h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
-1. Remove taxa that no longer retain both gene copies generated from WGD - modified trees are subsequently referred to as <u>*pruned*</u>
+1. Remove taxa that no longer retain both gene copies generated from gene duplications - modified trees are subsequently referred to as <u>*pruned*</u>
 2. Select homolog trees that show the gene duplication from WGD, and only use ortholog trees from these homologs for species tree inference - selected ortholog trees are subsequently referred to as <u>*WGD*</u> trees
 
 ![drawio](tutorials/main_workflow.drawio.svg)

@@ -84,6 +84,7 @@ def parse_arguments():
     parser_infer_ortho.add_argument("-e", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
     parser_infer_ortho.add_argument("-m", "--min_dupl_tip_overlap", type=int, help="Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 2")
     parser_infer_ortho.add_argument("-mp", "--min_dupl_percentage_overlap", type=float, help="Minimum percentage overlap between two child clades to be considered as a duplication node, default is 0.1")
+    parser_infer_ortho.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species") 
     parser_infer_ortho.add_argument("-od", "--output_directory", type=str, help="Output directory")
     parser_infer_ortho.add_argument("-p", "--just_pruning", action="store_true", help="Only produce pruned ortholog trees")
     parser_infer_ortho.add_argument("-np", "--no_pruning", action="store_true", help="Only produce unpruned ortholog trees")
@@ -94,6 +95,7 @@ def parse_arguments():
     parser_map_duplications.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
     parser_map_duplications.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating an `other_output/` directory in the currnet directory if not exist")
     parser_map_duplications.add_argument("-s", "--species_tree_file", type=str, help="Species tree file", required=True)
+    parser_map_duplications.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species") 
     parser_map_duplications.set_defaults(func=map_duplications_main)
 
     # Subcommand: h2o extract_wgd_trees

@@ -50,3 +50,11 @@ def test_run_shell_command(capsys):
 
     captured = capsys.readouterr()
     assert "Hello from H2O test" in captured.out
+
+def test_get_tips_in_ascending_order():
+    """Test the get_tips_in_ascending_order function"""
+
+    tree = t.read_tree_string("(o,(((a,b),(c,(d,e))),(f,g)));")
+    tips = utils.get_tips_in_ascending_order(tree)
+
+    assert tips == ['o', 'f', 'g', 'a', 'b', 'c', 'd', 'e']
