@@ -11,15 +11,15 @@ import os
 import sys
 import time
 
-def cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning):
+def cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning, tree_file_ending):
     if os.path.exists(processed_tree_folder +  pruning + "/"):
         with open(output_directory + "cat_" + pruning + "_wgd_trees.sh", "w") as f:
             f.write("#!/bin/bash\n\n")
             for i, tree in enumerate(wgd_trees):
                 if i == 0:
-                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre > " + output_directory + "ASTRAL_in_" + pruning + "_wgd.tre\n")
+                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre > " + output_directory + "ASTRAL_in_" + pruning + "_wgd" + tree_file_ending + ".tre\n")
                 else:
-                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre >> " + output_directory + "ASTRAL_in_" + pruning + "_wgd.tre\n")
+                    f.write("cat " + processed_tree_folder + pruning + "/" + tree + "*ortho*.tre >> " + output_directory + "ASTRAL_in_" + pruning + "_wgd" + tree_file_ending + ".tre\n")
         run_shell_command("bash " + output_directory + "cat_" + pruning + "_wgd_trees.sh")  
         return True
     else:
@@ -37,6 +37,8 @@ def main(args):
     except ValueError:
         print("Error: WGD node numbers must be integers.")
         sys.exit(2)
+    wgd_nodes.sort()
+    tree_file_ending = "_n" + str(wgd_nodes[0])
 
     processed_tree_folder = check_path(args.processed_tree_dir,error_if_not_exists=True)
     
@@ -66,9 +68,9 @@ def main(args):
             if any(int(splt[node]) > 0 for node in wgd_nodes):
                 wgd_trees.append(tree_name)
     
-    unpruned = cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning="unpruned")
+    unpruned = cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, "unpruned",tree_file_ending)
     
-    pruned = cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, pruning="pruned")
+    pruned = cat_n_run_bash(wgd_trees, processed_tree_folder, output_directory, "pruned",tree_file_ending)
 
     if not unpruned and not pruned:
         print("Error: No processed ortholog tree folder found.")

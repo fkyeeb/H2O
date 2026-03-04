@@ -112,6 +112,7 @@ def parse_arguments():
     parser_gene_loss.add_argument("-n", "--wgd_nodes", type=str, help="List of WGD node numbers, separated by commas, no spaces", required=True)
     parser_gene_loss.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output directory in the current directory")
     parser_gene_loss.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating the other_output/ directory in the current directory, create if not exist")
+    parser_gene_loss.add_argument("-ils", "--ils_correction", action="store_true", help="Flag to use ILS corrected tree")
     parser_gene_loss.set_defaults(func=gene_loss_main)
 
     # Subcommand: h2o bp2pie
@@ -141,6 +142,7 @@ def parse_arguments():
     parser_rmtips.add_argument("-od", "--output_directory", type=str, help="Output directory", required=True)
     parser_rmtips.add_argument("-e", "--tree_file_ending", type=str, help="File ending for tree files",required=True)
     parser_rmtips.add_argument("-m", "--minimum_taxa", type=str, help="Minimum number of taxa in output tree, default is 5")
+    parser_rmtips.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species")
 
     rm_or_save_group = parser_rmtips.add_mutually_exclusive_group(required=True)
     rm_or_save_group.add_argument("-rm", "--tips2remove", type=str, help="File containing tips to remove, one per line")

@@ -88,7 +88,7 @@ def test_map_dupl_ks():
     """Test the map_dupl function with ks output"""
 
     args = argparse.Namespace(
-        processed_tree_dir="tests/test_data/processed_trees_ks",
+        processed_tree_dir="tests/test_data/processed_trees_id",
         output_directory="tests/test_data/map_dupl_ks_output",
         species_tree_file="tests/test_data/species.tre",
         id2sp_file="tests/test_data/id2sp.txt"
@@ -100,4 +100,4 @@ def test_map_dupl_ks():
         assert lines[3] == "4	dup_ils	a@123,a@345\n"
 
     shutil.rmtree('tests/test_data/map_dupl_ks_output')
-    shutil.rmtree('tests/test_data/processed_trees_ks')
+    shutil.rmtree('tests/test_data/processed_trees_id')

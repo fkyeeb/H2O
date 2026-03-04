@@ -188,8 +188,12 @@ def map_dup(dup_tree,dup_node_counts,dup_node_counts_corrected,tip_counts,tip_re
                             ks_pairs_ils.append([int(best_match_corrected),cluster,combine])
         
     # Write to file using provided file handle
-    tsv_file.write(tree_file.split("_rooted_processed.tre")[0] + "\t")
-    tsv_c_file.write(tree_file.split("_rooted_processed.tre")[0] + "\t")
+    if id2sp:
+        tree_file_ending = "_rooted_processed_id.tre"
+    else:
+        tree_file_ending = "_rooted_processed.tre"
+    tsv_file.write(tree_file.split(tree_file_ending)[0] + "\t")
+    tsv_c_file.write(tree_file.split(tree_file_ending)[0] + "\t")
     for node in dup_node_counts:
         tsv_file.write(str(dup_node_counts[node]-previous_count[node]) + "\t")
         tsv_c_file.write(str(dup_node_counts_corrected[node]-previous_count_corrected[node]) + "\t")
@@ -276,30 +280,30 @@ def main(args):
                     node.label = str(dup_node_counts_corrected[node.label])
             file.write(sp_tree_copy.get_newick_repr(showbl=True) + ";\n")
         
-        # Writes tip counts for each node in a tsv file
-        tip_in_assending_order = get_tips_in_ascending_order(sp_tree)
-        with open(output_folder + "duplication_tip_frequencies.tsv", 'a') as file:
-            for tip in tip_in_assending_order:
-                file.write(tip + "\t")
-                for node in tip_counts:
-                    if tip in tip_counts[node]:
-                        freq = tip_counts[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
-                        file.write(str(round(freq,2)) + "\t")
-                    else:
-                        file.write("-\t")
-                file.write("\n")
+    #     # Writes tip counts for each node in a tsv file
+    #     tip_in_assending_order = get_tips_in_ascending_order(sp_tree)
+    #     with open(output_folder + "duplication_tip_frequencies.tsv", 'a') as file:
+    #         for tip in tip_in_assending_order:
+    #             file.write(tip + "\t")
+    #             for node in tip_counts:
+    #                 if tip in tip_counts[node]:
+    #                     freq = tip_counts[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
+    #                     file.write(str(round(freq,2)) + "\t")
+    #                 else:
+    #                     file.write("-\t")
+    #             file.write("\n")
 
-    # Writes tip retention counts for each node in a tsv file
-    with open(output_folder + "duplication_tip_retention.tsv", 'a') as file:
-        for tip in tip_in_assending_order:
-            file.write(tip + "\t")
-            for node in tip_retention:
-                if tip in tip_retention[node]:
-                    retention_freq = tip_retention[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
-                    file.write(str(round(retention_freq,2)) + "\t")
-                else:
-                    file.write("-\t")
-            file.write("\n")
+    # # Writes tip retention counts for each node in a tsv file
+    # with open(output_folder + "duplication_tip_retention.tsv", 'a') as file:
+    #     for tip in tip_in_assending_order:
+    #         file.write(tip + "\t")
+    #         for node in tip_retention:
+    #             if tip in tip_retention[node]:
+    #                 retention_freq = tip_retention[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
+    #                 file.write(str(round(retention_freq,2)) + "\t")
+    #             else:
+    #                 file.write("-\t")
+    #         file.write("\n")
 
     end_time = time.time()
     elapsed = transform_elapsed_time(start_time,end_time)

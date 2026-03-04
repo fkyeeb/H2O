@@ -105,26 +105,28 @@ def test_infer_ortho_rooting(capsys):
     # remove all the output files created by unit test
     shutil.rmtree('tests/test_data/processed_trees_rooting')
 
-def test_infer_ortho_ks():
+def test_infer_ortho_id():
     """Test id2sp procedure"""
 
     args = argparse.Namespace(
-        homolog_tree_dir="tests/test_data/homolog_trees_ks",
+        homolog_tree_dir="tests/test_data/homolog_trees_id",
         outgroup_list="o",
         tree_file_ending=".tre",
         min_dupl_tip_overlap=None,
         min_dupl_percentage_overlap=None,
-        output_directory="tests/test_data/processed_trees_ks",
+        output_directory="tests/test_data/processed_trees_id",
         no_pruning=False,
         just_pruning=False,
         id2sp_file="tests/test_data/id2sp.txt"
     )
     infer_orthology.main(args)
 
-    with open("tests/test_data/processed_trees_ks/dup_rooted.tre", "r") as f:
+    with open("tests/test_data/processed_trees_id/dup_rooted.tre", "r") as f:
         assert f.read() == "(o:0.0,(((a:0.0,b:0.0):0.0,d:0.0):0.0,((a:0.0,b:0.0):0.0,c:0.0):0.0):0.0):0.0;\n"
-    with open("tests/test_data/processed_trees_ks/unpruned/dup_rooted_processed_id.tre", "r") as f:
+    with open("tests/test_data/processed_trees_id/unpruned/dup_rooted_processed_id.tre", "r") as f:
         assert f.read() == "(o@12:0.0,(((a@123:0.0,b@123:0.0):0.0,d@123:0.0):0.0,((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0)D:0.0):0.0;\n"
+    with open("tests/test_data/processed_trees_id/unpruned/dup_ortho1_id.tre", "r") as f:
+        assert f.read() == "(o@12:0.0,((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0):0.0;\n"
 
     # remove all the output files created by unit test
-    # shutil.rmtree('tests/test_data/processed_trees_ks')
+    # shutil.rmtree('tests/test_data/processed_trees_id')

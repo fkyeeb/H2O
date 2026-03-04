@@ -29,6 +29,8 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.output_directory == "tests/test_data/pruned_homologs"
     assert captured_args.tree_file_ending == ".tre"
     assert captured_args.minimum_taxa == "10"
+    assert captured_args.tips2save == None
+    assert captured_args.id2sp_file == None
 
     test_args = ["h2o", "rmtips", "-t", "tests/test_data/homolog_trees", "-sv", "file1.txt", "-od", "tests/test_data/pruned_homologs", "-e", ".tre"]
     monkeypatch.setattr(sys, "argv", test_args)
@@ -49,7 +51,8 @@ def test_rmtips():
         output_directory="tests/test_data/pruned_homologs/",
         tips2save=None,
         tree_file_ending=".tre",
-        minimum_taxa=None
+        minimum_taxa=None,
+        id2sp_file=None
     )
 
     rmtips.main(args)
@@ -65,11 +68,29 @@ def test_svtips():
         output_directory="tests/test_data/pruned_homologs/",
         tips2save="tests/test_data/tips2sv.txt",
         tree_file_ending=".tre",
-        minimum_taxa="7"
+        minimum_taxa="7",
+        id2sp_file=None
     )
 
     rmtips.main(args)
     with open("tests/test_data/pruned_homologs/dup_loss.tre", "r") as file:
         assert file.read() == "(o:0.0,(((a:0.0,b:0.0):0.0,c:0.0):0.0,((a:0.0,b:0.0):0.0,c:0.0):0.0):0.0):0.0;\n"
     assert not os.path.exists("tests/test_data/pruned_homologs/dup_difficult.tre")
+    shutil.rmtree("tests/test_data/pruned_homologs/")
+
+def test_rmtips_id2sp():
+    """Test the rmtips function with id tip labels"""
+    args = argparse.Namespace(
+        tree_dir="tests/test_data/homolog_trees_id",
+        tips2remove=None,
+        output_directory="tests/test_data/pruned_homologs/",
+        tips2save="tests/test_data/tips2sv.txt",
+        tree_file_ending=".tre",
+        minimum_taxa=None,
+        id2sp_file="tests/test_data/id2sp.txt"
+    )
+
+    rmtips.main(args)
+    with open("tests/test_data/pruned_homologs/dup.tre", "r") as file:
+        assert file.read() == "(o@12:0.0,(((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0,(a@123:0.0,b@123:0.0):0.0):0.0):0.0;\n"
     shutil.rmtree("tests/test_data/pruned_homologs/")

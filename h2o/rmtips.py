@@ -3,7 +3,7 @@ Module for removing specified tips from trees in a directory.
 Or removing all tips except specified ones.
 """
 from h2o import tree_reader as t
-from h2o.utils import check_path
+from h2o.utils import check_path,precompute_leaf_names_number_nodes
 import os
 
 def main(args):
@@ -26,18 +26,25 @@ def main(args):
             tips = set(line.strip() for line in file)
             remove = False
     
+    if args.id2sp_file:
+        id2sp = check_path(args.id2sp_file, is_folder=False, error_if_not_exists=True)
+    else:
+        id2sp = None
+    
     # run the script
     print("------------------------------------------------------------\n")
 
     # Filter tree files more efficiently using list comprehension
     tree_files = [f for f in os.listdir(tree_dir) if f.endswith(tree_file_ending)]
     
-    all_tree_count = len(tree_files)
     for tree_file in tree_files:
         print("Processing tree: " + tree_file + "\n")
         with open(tree_dir + tree_file,"r") as f:
             tree = t.read_tree_string(f.readline().strip())
         
+        if id2sp: # change labels to species names
+            precompute_leaf_names_number_nodes(tree,id2sp=id2sp)
+
         for node in tree.iternodes():
             if node.istip:
                 if remove:
@@ -61,6 +68,11 @@ def main(args):
                 else:
                     tree = n.children[0]
         
+        if id2sp: # restore original labels
+            for node in tree.iternodes():
+                if node.istip:
+                    node.label = node.cache_label
+
         with open(output_directory + tree_file,"w") as out:
             out.write(tree.get_newick_repr(showbl=True) + ";\n")
 

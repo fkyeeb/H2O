@@ -103,6 +103,8 @@ def main(args):
     duplication_counts_file = check_path(duplication_counts_dir + "duplication_counts.tsv",is_folder=False,error_if_not_exists=True)
     numbered_tree_file = check_path(duplication_counts_dir + "consensus_tree_numbered.tre",is_folder=False,error_if_not_exists=True)
 
+    ils = args.ils_correction
+
     print("------------------------------------------------------------\n")
     print(time.ctime() + "\n")
     start_time = time.time()
@@ -125,6 +127,8 @@ def main(args):
     
     with open(duplication_counts_file,"r") as f:
         f.readline()
+        if ils:
+            f.readline() # use the third ils corrected tree
         for line in f:
             splt = line.strip().split("\t")
             tree_name = splt.pop(0)

@@ -249,6 +249,13 @@ def get_orthologs(root):
 
     return ortho_trees
 
+def tree2id_tree(tree):
+    id_tree = copy.deepcopy(tree)
+    for n in id_tree.iternodes():
+        if n.istip:
+            n.label = n.cache_label
+    return id_tree
+
 def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_directory,tree_name,bool,leaf_cache,id2sp):
 
     label_duplication_node(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,bool,leaf_cache)
@@ -272,12 +279,10 @@ def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_di
         f.write(tree.get_newick_repr(showbl=True) + ";\n")
     
     if id2sp:
-        for n in tree.iternodes():
-            if n.istip:
-                n.label = n.cache_label
+        id_tree = tree2id_tree(tree)
 
         with open(output_directory + tree_name + "_rooted_processed_id.tre","w") as f:
-            f.write(tree.get_newick_repr(showbl=True) + ";\n")
+            f.write(id_tree.get_newick_repr(showbl=True) + ";\n")
 
     # get orthologs
     ortho_trees = get_orthologs(tree)
@@ -295,6 +300,18 @@ def prune_or_not(tree,min_dupl_tip_overlap,min_dupl_percentage_overlap,output_di
     for filename, content in ortho_output_contents:
         with open(filename, "w") as f:
             f.write(content)
+    
+    if id2sp:
+        ortho_id_output_contents = []
+        for i in range(l-1,-1,-1):
+            filename = output_directory + tree_name + "_ortho" + str(l-i) + "_id.tre"
+            id_ortho_tree = tree2id_tree(ortho_trees[i])
+            content = id_ortho_tree.get_newick_repr(showbl=True) + ";\n"
+            ortho_id_output_contents.append((filename, content))
+        
+        for filename, content in ortho_id_output_contents:
+            with open(filename, "w") as f:
+                f.write(content)
 
 def process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning,id2sp):
     # root tree
@@ -403,7 +420,7 @@ def main(args):
         print("Processing tree: " + tree_file + "\n")
         with open(tree_folder + tree_file,"r") as f:
             tree = t.read_tree_string(f.readline().strip())
-        tree_name = tree_file[:-len(tree_file_ending)]
+        tree_name = tree_file.split(tree_file_ending)[0]
         process_trees(tree,outgroup_list,tree_name,output_directory,min_dupl_tip_overlap,min_dupl_percentage_overlap,pruning,id2sp)
     
     print("------------------------------------------------------------\n")

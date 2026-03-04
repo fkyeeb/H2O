@@ -44,13 +44,13 @@ def test_extract_wgd_trees():
     )
     extract_wgd_trees.main(args)
 
-    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_unpruned_wgd.tre')
-    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_pruned_wgd.tre')
+    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_unpruned_wgd_n3.tre')
+    assert os.path.exists('tests/test_data/other_output/ASTRAL_in_pruned_wgd_n3.tre')
 
     os.remove('tests/test_data/other_output/cat_unpruned_wgd_trees.sh')
     os.remove('tests/test_data/other_output/cat_pruned_wgd_trees.sh')
-    os.remove('tests/test_data/other_output/ASTRAL_in_unpruned_wgd.tre')
-    os.remove('tests/test_data/other_output/ASTRAL_in_pruned_wgd.tre')
+    os.remove('tests/test_data/other_output/ASTRAL_in_unpruned_wgd_n3.tre')
+    os.remove('tests/test_data/other_output/ASTRAL_in_pruned_wgd_n3.tre')
 
 def test_wgd_node_error(capsys):
     """Test the extract_wgd_trees function with wgd node error"""

@@ -27,6 +27,7 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.wgd_nodes == "3"
     assert captured_args.output_directory == "tests/test_data/gene_loss_output"
     assert captured_args.duplication_counts_dir == "tests/test_data/duplication_counts"
+    assert captured_args.ils_correction == False
 
     monkeypatch.setattr(map_gene_loss, 'main', original_main)
 
@@ -59,7 +60,28 @@ def test_map_gene_loss():
         processed_tree_dir="tests/test_data/processed_trees",
         output_directory="tests/test_data/other_output/",
         duplication_counts_dir="tests/test_data/other_output/",
-        wgd_nodes="3,1"
+        wgd_nodes="3,1",
+        ils_correction=False
+    )
+    map_gene_loss.main(args)
+
+    with open('tests/test_data/other_output/gene_loss_counts.tsv', 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if "dup_loss" in line:
+                assert line == 'dup_loss\t1\t1\t2\t\n'
+                break
+    
+
+def test_map_gene_loss_ils():
+    """Test the map_gene_loss function with ILS correction"""
+
+    args = argparse.Namespace(
+        processed_tree_dir="tests/test_data/processed_trees",
+        output_directory="tests/test_data/other_output/",
+        duplication_counts_dir="tests/test_data/other_output/",
+        wgd_nodes="3,1",
+        ils_correction=True
     )
     map_gene_loss.main(args)
 
