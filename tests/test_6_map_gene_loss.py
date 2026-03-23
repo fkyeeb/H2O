@@ -28,6 +28,7 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.output_directory == "tests/test_data/gene_loss_output"
     assert captured_args.duplication_counts_dir == "tests/test_data/duplication_counts"
     assert captured_args.ils_correction == False
+    assert captured_args.id2sp_file == None
 
     monkeypatch.setattr(map_gene_loss, 'main', original_main)
 
@@ -61,7 +62,8 @@ def test_map_gene_loss():
         output_directory="tests/test_data/other_output/",
         duplication_counts_dir="tests/test_data/other_output/",
         wgd_nodes="3,1",
-        ils_correction=False
+        ils_correction=False,
+        id2sp_file=None
     )
     map_gene_loss.main(args)
 
@@ -81,7 +83,8 @@ def test_map_gene_loss_ils():
         output_directory="tests/test_data/other_output/",
         duplication_counts_dir="tests/test_data/other_output/",
         wgd_nodes="3,1",
-        ils_correction=True
+        ils_correction=True,
+        id2sp_file=None
     )
     map_gene_loss.main(args)
 

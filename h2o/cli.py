@@ -112,6 +112,7 @@ def parse_arguments():
     parser_gene_loss.add_argument("-n", "--wgd_nodes", type=str, help="List of WGD node numbers, separated by commas, no spaces", required=True)
     parser_gene_loss.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output directory in the current directory")
     parser_gene_loss.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating the other_output/ directory in the current directory, create if not exist")
+    parser_gene_loss.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species")
     parser_gene_loss.add_argument("-ils", "--ils_correction", action="store_true", help="Flag to use ILS corrected tree")
     parser_gene_loss.set_defaults(func=gene_loss_main)
 
