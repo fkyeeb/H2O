@@ -44,7 +44,8 @@ def test_check_wgd_comp(capsys):
         output_directory="tests/test_data/processed_trees",
         no_pruning=False,
         just_pruning=False,
-        id2sp_file=None
+        id2sp_file=None,
+        single_sample_duplications=False
     )
     infer_orthology.main(args)
 

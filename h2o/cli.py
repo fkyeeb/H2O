@@ -84,6 +84,7 @@ def parse_arguments():
     parser_infer_ortho.add_argument("-e", "--tree_file_ending", type=str, help="File ending of the homolog trees", required=True)
     parser_infer_ortho.add_argument("-m", "--min_dupl_tip_overlap", type=int, help="Minimum number of tip overlap between two child clades to be considered as a duplication node, default is 2")
     parser_infer_ortho.add_argument("-mp", "--min_dupl_percentage_overlap", type=float, help="Minimum percentage overlap between two child clades to be considered as a duplication node, default is 0.1")
+    parser_infer_ortho.add_argument("-sd", "--single_sample_duplications", action="store_true", help="Retain within-sample duplications")
     parser_infer_ortho.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species") 
     parser_infer_ortho.add_argument("-od", "--output_directory", type=str, help="Output directory")
     parser_infer_ortho.add_argument("-p", "--just_pruning", action="store_true", help="Only produce pruned ortholog trees")

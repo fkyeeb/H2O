@@ -35,6 +35,7 @@ def test_parse_arguments(monkeypatch):
     assert captured_args.no_pruning == False
     assert captured_args.just_pruning == False
     assert captured_args.id2sp_file == None
+    assert captured_args.single_sample_duplications == False
 
     # Restore the original function
     monkeypatch.setattr(infer_orthology, 'main', original_main)
@@ -51,7 +52,8 @@ def test_infer_ortho():
         output_directory="tests/test_data/processed_trees",
         no_pruning=False,
         just_pruning=False,
-        id2sp_file=None
+        id2sp_file=None,
+        single_sample_duplications=False
     )
     infer_orthology.main(args)
     
@@ -84,7 +86,8 @@ def test_infer_ortho_rooting(capsys):
         output_directory="tests/test_data/processed_trees_rooting",
         no_pruning=False,
         just_pruning=False,
-        id2sp_file=None
+        id2sp_file=None,
+        single_sample_duplications=False
     )
     infer_orthology.main(args)
 
@@ -105,6 +108,29 @@ def test_infer_ortho_rooting(capsys):
     # remove all the output files created by unit test
     shutil.rmtree('tests/test_data/processed_trees_rooting')
 
+def test_infer_ortho_single_sample_duplications():
+    """Test the single_sample_duplications"""
+
+    args = argparse.Namespace(
+        homolog_tree_dir="tests/test_data/homolog_trees_id",
+        outgroup_list="o",
+        tree_file_ending=".tre",
+        min_dupl_tip_overlap=None,
+        min_dupl_percentage_overlap=None,
+        output_directory="tests/test_data/processed_trees_id",
+        no_pruning=False,
+        just_pruning=False,
+        id2sp_file="tests/test_data/id2sp.txt",
+        single_sample_duplications=True
+    )
+    infer_orthology.main(args)
+
+    with open("tests/test_data/processed_trees_id/unpruned/dup_ssd_rooted_processed.tre", "r") as f:
+        assert f.read() == "(o:0.0,(((a:0.0,a:0.0):0.0,b:0.0):0.0,c:0.0):0.0):0.0;\n"
+
+    # remove all the output files created by unit test
+    shutil.rmtree('tests/test_data/processed_trees_id')
+
 def test_infer_ortho_id():
     """Test id2sp procedure"""
 
@@ -117,7 +143,8 @@ def test_infer_ortho_id():
         output_directory="tests/test_data/processed_trees_id",
         no_pruning=False,
         just_pruning=False,
-        id2sp_file="tests/test_data/id2sp.txt"
+        id2sp_file="tests/test_data/id2sp.txt",
+        single_sample_duplications=False
     )
     infer_orthology.main(args)
 
@@ -127,6 +154,8 @@ def test_infer_ortho_id():
         assert f.read() == "(o@12:0.0,(((a@123:0.0,b@123:0.0):0.0,d@123:0.0):0.0,((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0)D:0.0):0.0;\n"
     with open("tests/test_data/processed_trees_id/unpruned/dup_ortho1_id.tre", "r") as f:
         assert f.read() == "(o@12:0.0,((a@345:0.0,b@345:0.0):0.0,c@345:0.0):0.0):0.0;\n"
+    with open("tests/test_data/processed_trees_id/unpruned/dup_ssd_rooted_processed.tre", "r") as f:
+        assert f.read() == "(o:0.0,((b:0.0,a:0.0):0.0,c:0.0):0.0):0.0;\n"
 
     # remove all the output files created by unit test
     # shutil.rmtree('tests/test_data/processed_trees_id')
