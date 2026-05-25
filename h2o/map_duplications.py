@@ -34,17 +34,11 @@ def number_all_nodes(tree,output_folder):
     tf = open(output_folder + "consensus_tree_numbered.tre", 'w')
     tsv_file = open(output_folder + "duplication_counts.tsv", 'w')
     tsv_c_file = open(output_folder + "duplication_counts_ils_corrected.tsv", 'w')
-    tip_freq_file = open(output_folder + "duplication_tip_frequencies.tsv", 'w')
-    tip_retention_file = open(output_folder + "duplication_tip_retention.tsv", 'w')
     tsv_file.write("tree\t")
     tsv_c_file.write("tree\t")
-    tip_freq_file.write("tip_label\t")
-    tip_retention_file.write("tip_label\t")
     
     dup_node_counts = {}
     dup_node_counts_corrected = {}
-    tip_counts = {}
-    tip_retention = {}
     
     # Pre-compute leaf names to avoid repeated lvsnms() calls
     leaf_cache, parent2children = precompute_leaf_names_number_nodes(tree,label=True,return_set=True,return_children=True)
@@ -52,32 +46,21 @@ def number_all_nodes(tree,output_folder):
     for node_label in leaf_cache:
         dup_node_counts[node_label] = 0
         dup_node_counts_corrected[node_label] = 0
-        tip_counts[node_label] = {}
-        tip_retention[node_label] = {}
-        for tip in leaf_cache[node_label]:
-            tip_counts[node_label][tip] = 0
-            tip_retention[node_label][tip] = 0
         tsv_file.write(node_label + "\t")
         tsv_c_file.write(node_label + "\t")
-        tip_freq_file.write(node_label + "\t")
-        tip_retention_file.write(node_label + "\t")
     
     tf.write(tree.get_newick_repr(showbl = True) + ";\n")
     tf.close()
-    tip_freq_file.write("\n")
-    tip_freq_file.close()
-    tip_retention_file.write("\n")
-    tip_retention_file.close()
     tsv_file.write("n/a\n")
     tsv_c_file.write("n/a\n")
     
     dup_node_counts["not_found"] = 0
     dup_node_counts_corrected["not_found"] = 0
 
-    return dup_node_counts,dup_node_counts_corrected,tip_counts,tip_retention,leaf_cache,parent2children,tsv_file,tsv_c_file
+    return dup_node_counts,dup_node_counts_corrected,leaf_cache,parent2children,tsv_file,tsv_c_file
 
 
-def map_dup(dup_tree,dup_node_counts,dup_node_counts_corrected,tip_counts,tip_retention,sp_tree_leaf_cache,tsv_file,tsv_c_file,tree_file,sp_tree_parent2children,id2sp):
+def map_dup(dup_tree,dup_node_counts,dup_node_counts_corrected,sp_tree_leaf_cache,tsv_file,tsv_c_file,tree_file,sp_tree_parent2children,id2sp):
     """
     Map duplications from dup_tree to species tree
     Write a line in the duplication counts file with the number of duplications at each node for this tree
@@ -128,12 +111,6 @@ def map_dup(dup_tree,dup_node_counts,dup_node_counts_corrected,tip_counts,tip_re
                 else:
                     tips = set(leaf_cache[child.cache_label]) 
                     child_tips.append(tips)
-                for tip in tips:
-                    tip_counts[best_match][tip] += 1
-            # counting times both duplicated genes are retained in each sample
-            tip_retained = child_tips[0] & child_tips[1]
-            for tip in tip_retained:
-                tip_retention[best_match][tip] += 1
             
             # ILS correction
             best_match_children =  sp_tree_parent2children[best_match]
@@ -200,7 +177,7 @@ def map_dup(dup_tree,dup_node_counts,dup_node_counts_corrected,tip_counts,tip_re
     tsv_file.write("\n")
     tsv_c_file.write("\n")
 
-    return dup_node_counts,dup_node_counts_corrected,tip_counts,tip_retention,ks_pairs,ks_pairs_ils
+    return dup_node_counts,dup_node_counts_corrected,ks_pairs,ks_pairs_ils
 
 def main(args):
     """
@@ -227,7 +204,7 @@ def main(args):
         start_time = time.time()
 
         # Initialize with consolidated file operations
-        (dup_node_counts, dup_node_counts_corrected, tip_counts, tip_retention, 
+        (dup_node_counts, dup_node_counts_corrected,  
         sp_tree_leaf_cache, sp_tree_parent2children, tsv_file, 
         tsv_c_file) = number_all_nodes(sp_tree, output_folder)
         
@@ -241,11 +218,11 @@ def main(args):
             if tree_file.endswith(tree_file_ending):
                 with open(processed_tree_folder + tree_file, "r") as f:
                     dup_tree = t.read_tree_string(f.readline().strip())
-                    (dup_node_counts, dup_node_counts_corrected, tip_counts, 
-                    tip_retention, ks_pairs_extend, ks_pairs_ils_extend) = map_dup(
+                    (dup_node_counts, dup_node_counts_corrected, 
+                    ks_pairs_extend, ks_pairs_ils_extend) = map_dup(
                     dup_tree, dup_node_counts, dup_node_counts_corrected, 
-                    tip_counts, tip_retention, sp_tree_leaf_cache, tsv_file,
-                    tsv_c_file, tree_file, sp_tree_parent2children,id2sp)
+                    sp_tree_leaf_cache, tsv_file, tsv_c_file, tree_file, 
+                    sp_tree_parent2children,id2sp)
                     ks_pairs.extend(ks_pairs_extend)
                     ks_pairs_ils_corrected.extend(ks_pairs_ils_extend)
 
@@ -279,31 +256,6 @@ def main(args):
                 if not node.istip and node.label != "":
                     node.label = str(dup_node_counts_corrected[node.label])
             file.write(sp_tree_copy.get_newick_repr(showbl=True) + ";\n")
-        
-    #     # Writes tip counts for each node in a tsv file
-    #     tip_in_assending_order = get_tips_in_ascending_order(sp_tree)
-    #     with open(output_folder + "duplication_tip_frequencies.tsv", 'a') as file:
-    #         for tip in tip_in_assending_order:
-    #             file.write(tip + "\t")
-    #             for node in tip_counts:
-    #                 if tip in tip_counts[node]:
-    #                     freq = tip_counts[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
-    #                     file.write(str(round(freq,2)) + "\t")
-    #                 else:
-    #                     file.write("-\t")
-    #             file.write("\n")
-
-    # # Writes tip retention counts for each node in a tsv file
-    # with open(output_folder + "duplication_tip_retention.tsv", 'a') as file:
-    #     for tip in tip_in_assending_order:
-    #         file.write(tip + "\t")
-    #         for node in tip_retention:
-    #             if tip in tip_retention[node]:
-    #                 retention_freq = tip_retention[node][tip]/dup_node_counts[node] if dup_node_counts[node] > 0 else 0
-    #                 file.write(str(round(retention_freq,2)) + "\t")
-    #             else:
-    #                 file.write("-\t")
-    #         file.write("\n")
 
     end_time = time.time()
     elapsed = transform_elapsed_time(start_time,end_time)

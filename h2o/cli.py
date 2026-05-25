@@ -7,14 +7,13 @@ import sys
 from importlib.metadata import version, PackageNotFoundError
 
 from h2o import (
+    extract_gfe_trees,
     infer_orthology,
     map_duplications,
-    extract_wgd_trees,
     map_gene_loss,
     bp2pie,
     extract_constraint_tree,
-    rmtips,
-    check_wgd_comp
+    rmtips
 )
 
 def infer_ortho_main(args):
@@ -29,11 +28,11 @@ def map_duplications_main(args):
     """
     map_duplications.main(args)
 
-def extract_wgd_trees_main(args):
+def extract_gfe_trees_main(args):
     """
-    direct to extract_wgd_trees
+    direct to extract_gfe_trees
     """
-    extract_wgd_trees.main(args)
+    extract_gfe_trees.main(args)
 
 def gene_loss_main(args):
     """
@@ -58,12 +57,6 @@ def rmtips_main(args):
     direct to rmtips
     """
     rmtips.main(args)
-
-def check_wgd_comp_main(args):
-    """
-    direct to check_wgd_comp
-    """
-    check_wgd_comp.main(args)
 
 def parse_arguments():
     """
@@ -99,18 +92,18 @@ def parse_arguments():
     parser_map_duplications.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species") 
     parser_map_duplications.set_defaults(func=map_duplications_main)
 
-    # Subcommand: h2o extract_wgd_trees
-    parser_extract_wgd_trees = subparsers.add_parser("extract_wgd_trees", help="Extract and concatenate homolog trees that shows gene duplications at WGD events")
-    parser_extract_wgd_trees.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
-    parser_extract_wgd_trees.add_argument("-n", "--wgd_nodes", type=str, help="List of WGD node numbers, separated by commas, no spaces", required=True)
-    parser_extract_wgd_trees.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output/ directory in the current directory")
-    parser_extract_wgd_trees.add_argument("-od", "--output_directory", type=str, help="Output directory,default is other_output/ directory in the current directory, create if not exist")
-    parser_extract_wgd_trees.set_defaults(func=extract_wgd_trees_main)
+    # Subcommand: h2o extract_gfe_trees
+    parser_extract_gfe_trees = subparsers.add_parser("extract_gfe_trees", help="Extract and concatenate homolog trees that shows gene duplications at GFE events")
+    parser_extract_gfe_trees.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
+    parser_extract_gfe_trees.add_argument("-n", "--gfe_nodes", type=str, help="List of GFE node numbers, separated by commas, no spaces", required=True)
+    parser_extract_gfe_trees.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output/ directory in the current directory")
+    parser_extract_gfe_trees.add_argument("-od", "--output_directory", type=str, help="Output directory,default is other_output/ directory in the current directory, create if not exist")
+    parser_extract_gfe_trees.set_defaults(func=extract_gfe_trees_main)
 
     # Subcommand: h2o gene_loss
-    parser_gene_loss = subparsers.add_parser("gene_loss", help="Map gene copy losses after given WGD events")
+    parser_gene_loss = subparsers.add_parser("gene_loss", help="Map gene copy losses after given GFE events")
     parser_gene_loss.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
-    parser_gene_loss.add_argument("-n", "--wgd_nodes", type=str, help="List of WGD node numbers, separated by commas, no spaces", required=True)
+    parser_gene_loss.add_argument("-n", "--gfe_nodes", type=str, help="List of GFE node numbers, separated by commas, no spaces", required=True)
     parser_gene_loss.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output directory in the current directory")
     parser_gene_loss.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating the other_output/ directory in the current directory, create if not exist")
     parser_gene_loss.add_argument("-f", "--id2sp_file", type=str, help="one taxon each line, id<tab>species")
@@ -152,16 +145,6 @@ def parse_arguments():
 
     parser_rmtips.set_defaults(func=rmtips_main)
 
-    # Subcommand: h2o wgd_comp
-    parser_wgd_comp = subparsers.add_parser("wgd_comp", help="Check WGD and some near nodes")
-    parser_wgd_comp.add_argument("-t", "--processed_tree_dir", type=str, help="Folder containing processed trees", required=True)
-    parser_wgd_comp.add_argument("-n", "--wgd_node", type=str, help="the WGD node", required=True)
-    parser_wgd_comp.add_argument("-cn", "--connected_nodes", type=str, help="the connected nodes of WGD that have a lot of gene duplications, separated by commas, no spaces")
-    parser_wgd_comp.add_argument("-d", "--duplication_counts_dir", type=str, help="Duplication counts directory, default is other_output directory in the current directory")
-    parser_wgd_comp.add_argument("-od", "--output_directory", type=str, help="Output directory, default is creating the other_output/ directory in the current directory, create if not exist")
-    
-    parser_wgd_comp.set_defaults(func=check_wgd_comp_main)
-
     # version
     try:
         pkg_version = version("H2O")  # ← name from pyproject.toml [project.name]
@@ -188,7 +171,7 @@ def main():
     print("   | |  | |    / /     | '  | | ")
     print("   | |  | |   / '____  '  `-' / ")
     print("  (___)(___) (_______)  `.__.'  ")
-    print("\nThe ancient-WGD-aware homolog to ortholog trees command-line tool, for plant phylogenomics.\n")
+    print("\nThe large-scale-GFE-aware homolog to ortholog trees command-line tool, for plant phylogenomics.\n")
 
     args = parse_arguments()
     if args.subcommand is None:

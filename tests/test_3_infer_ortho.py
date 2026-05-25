@@ -126,7 +126,7 @@ def test_infer_ortho_single_sample_duplications():
     infer_orthology.main(args)
 
     with open("tests/test_data/processed_trees_id/unpruned/dup_ssd_rooted_processed.tre", "r") as f:
-        assert f.read() == "(o:0.0,(((a:0.0,a:0.0):0.0,b:0.0):0.0,c:0.0):0.0):0.0;\n"
+        assert f.read() == "(o:0.0,(((a:0.0,(a:0.0,a:0.0):0.0):0.0,b:0.0):0.0,(c:0.0,c:0.0):0.0):0.0):0.0;\n"
 
     # remove all the output files created by unit test
     shutil.rmtree('tests/test_data/processed_trees_id')

@@ -16,21 +16,21 @@ from h2o import tree_reader as t
 import sys
 import time
 
-def get_missing_tips(dup_tree,leaf_cache,wgd_tips_dict,wgd_nodes,ils,wgd_sis_dict):
+def get_missing_tips(dup_tree,leaf_cache,gfe_tips_dict,gfe_nodes,ils,gfe_sis_dict):
     """
-    if node is a dup node, if deepest_dup_parent is wgd, get missing tips of both child nodes compared to itself
+    if node is a dup node, if deepest_dup_parent is gfe, get missing tips of both child nodes compared to itself
     this is counting gene loss following parsimony, in case missing tips are counted twice
 
     :param [Node] dup_tree: root node of the dup tree
     :param [dict] leaf_cache: dictionary with node numbers as keys and set(tips) as values
-    :param [dict] wgd_tips_dict: dictionary with wgd node numbers as keys and tips [set(ingroup_tips),set(outgroup_tips)] as values
-    :param [list] wgd_nodes: list of wgd node numbers in this tree
+    :param [dict] gfe_tips_dict: dictionary with gfe node numbers as keys and tips [set(ingroup_tips),set(outgroup_tips)] as values
+    :param [list] gfe_nodes: list of gfe node numbers in this tree
     :param [bool] ils: flag indicating whether ILS corrected tree is used
-    :param [dict] wgd_sis_dict: dictionary with wgd node numbers as keys and set(tips) as values for their sister nodes
+    :param [dict] gfe_sis_dict: dictionary with gfe node numbers as keys and set(tips) as values for their sister nodes
     """
     all_dup_tips = leaf_cache["0"]
     missing_tips = []
-    wgd_node_output = []
+    gfe_node_output = []
 
     for node in dup_tree.iternodes():
         if node.label == "D":
@@ -40,39 +40,39 @@ def get_missing_tips(dup_tree,leaf_cache,wgd_tips_dict,wgd_nodes,ils,wgd_sis_dic
             deepest_non_dup_parent_tips = set(leaf_cache[deepest_non_dup_parent.cache_label])
             other_dup_tips = deepest_non_dup_parent_tips - dup_tips
 
-            for wgd_node in wgd_nodes:
-                wgd_tips = wgd_tips_dict[wgd_node][0]
-                wgd_other_tips = wgd_tips_dict[wgd_node][1]
-                if dup_tips <= wgd_tips and other_dup_tips <= wgd_other_tips:
+            for gfe_node in gfe_nodes:
+                gfe_tips = gfe_tips_dict[gfe_node][0]
+                gfe_other_tips = gfe_tips_dict[gfe_node][1]
+                if dup_tips <= gfe_tips and other_dup_tips <= gfe_other_tips:
                     for child in node.children:
                         child_tips = set(leaf_cache[child.cache_label])
                         if len(child_tips) >= 2:
-                            node_missing_tips = wgd_tips - set(leaf_cache[child.cache_label])
+                            node_missing_tips = gfe_tips - set(leaf_cache[child.cache_label])
                             if len(node_missing_tips) > 0:
                                 missing_tips.append(node_missing_tips)
-                                wgd_node_output.append(wgd_node)
+                                gfe_node_output.append(gfe_node)
                 elif ils:
-                    sis_tips = wgd_sis_dict[wgd_node]
+                    sis_tips = gfe_sis_dict[gfe_node]
                     dup_ils_tips = dup_tips - sis_tips
-                    if dup_ils_tips <= wgd_tips and other_dup_tips <= wgd_other_tips:
+                    if dup_ils_tips <= gfe_tips and other_dup_tips <= gfe_other_tips:
                         for child in node.children:
                             child_ils_tips = set(leaf_cache[child.cache_label]) - sis_tips
                             if len(child_ils_tips) >= 2:
-                                node_missing_tips = wgd_tips - child_ils_tips
+                                node_missing_tips = gfe_tips - child_ils_tips
                                 if len(node_missing_tips) > 0:
                                     missing_tips.append(node_missing_tips)
-                                    wgd_node_output.append(wgd_node)
+                                    gfe_node_output.append(gfe_node)
 
-    return missing_tips,wgd_node_output
+    return missing_tips,gfe_node_output
 
 def map_gene_loss(missing_tips,sp_tree_leaf_cache):
     """
     Mapping gene loss to species tree nodes
 
-    :param [list] missing_tips: list of set(missing tips) for each wgd dup node
+    :param [list] missing_tips: list of set(missing tips) for each gfe dup node
     :param [dict] sp_tree_leaf_cache: dictionary with node numbers as keys and set(tips) as values for the species tree
-    :return [list]: list of list of gene loss node numbers for each wgd dup node
-    :return [list]: list of set(missing tips) for each wgd dup node in the same order as gene loss node numbers
+    :return [list]: list of list of gene loss node numbers for each gfe dup node
+    :return [list]: list of set(missing tips) for each gfe dup node in the same order as gene loss node numbers
     """
     missing_nodes = []
     for one_clade_missing_tips in missing_tips:
@@ -103,12 +103,12 @@ def main(args):
     default_output_folder = "other_output/"
     output_folder = check_path(args.output_directory,default_path=default_output_folder,create_if_not_exists=True)
     
-    wgd_nodes = args.wgd_nodes.split(",")
+    gfe_nodes = args.gfe_nodes.split(",")
     try:
-        for node in wgd_nodes:
+        for node in gfe_nodes:
             int(node)
     except ValueError:
-        print("Error: WGD node numbers must be integers.")
+        print("Error: gfe node numbers must be integers.")
         sys.exit(2)
 
     ils = args.ils_correction
@@ -136,19 +136,19 @@ def main(args):
     gene_loss_node_counts = {}
     sp_tree_leaf_cache = precompute_leaf_names_number_nodes(numbered_tree,use_label=True,return_set=True)
     all_sp_tree_tips = sp_tree_leaf_cache["0"]
-    wgd_tips_dict = {}
-    wgd_sis_dict = {}
-    for wgd_node in wgd_nodes:
-        tips = sp_tree_leaf_cache[wgd_node]
-        wgd_tips_dict[wgd_node] = [tips,all_sp_tree_tips - tips]
+    gfe_tips_dict = {}
+    gfe_sis_dict = {}
+    for gfe_node in gfe_nodes:
+        tips = sp_tree_leaf_cache[gfe_node]
+        gfe_tips_dict[gfe_node] = [tips,all_sp_tree_tips - tips]
     if ils:
         for node in numbered_tree.iternodes():
-            if node.label in wgd_nodes:
+            if node.label in gfe_nodes:
                 sister = get_sister(node)
                 if sister.istip:
-                    wgd_sis_dict[node.label] = set([sister.label])
+                    gfe_sis_dict[node.label] = set([sister.label])
                 else:
-                    wgd_sis_dict[node.label] = set(sp_tree_leaf_cache[sister.label])
+                    gfe_sis_dict[node.label] = set(sp_tree_leaf_cache[sister.label])
 
 
     for node in sp_tree_leaf_cache:
@@ -164,15 +164,15 @@ def main(args):
             splt = line.strip().split("\t")
             tree_name = splt.pop(0)
 
-            if any(int(node) >= len(splt) or int(node) < 0 for node in wgd_nodes):
-                print("Error: WGD node numbers provided is out of range for the consensus tree.")
+            if any(int(node) >= len(splt) or int(node) < 0 for node in gfe_nodes):
+                print("Error: gfe node numbers provided is out of range for the consensus tree.")
                 sys.exit(2)
             
-            wgd_node_in_this_tree = [node for node in wgd_nodes if int(splt[int(node)]) > 0]
-            if len(wgd_node_in_this_tree) > 0:
+            gfe_node_in_this_tree = [node for node in gfe_nodes if int(splt[int(node)]) > 0]
+            if len(gfe_node_in_this_tree) > 0:
                 gene_loss_per_tree[tree_name] = {}
-                gene_loss_per_tree[tree_name]["wgd_node_in_this_tree"] = wgd_node_in_this_tree
-                gene_loss_per_tree[tree_name]["wgd_node_output"] = []
+                gene_loss_per_tree[tree_name]["gfe_node_in_this_tree"] = gfe_node_in_this_tree
+                gene_loss_per_tree[tree_name]["gfe_node_output"] = []
                 gene_loss_per_tree[tree_name]["gene_loss_nodes"] = []
                 gene_loss_per_tree[tree_name]["gene_loss_tips"] = []
 
@@ -185,26 +185,26 @@ def main(args):
             tree = t.read_tree_string(f.readline().strip())
         
         leaf_cache = precompute_leaf_names_number_nodes(tree,id2sp=id2sp)
-        wgd_node_in_this_tree = gene_loss_per_tree[tree_name]["wgd_node_in_this_tree"]
-        missing_tips,wgd_node_output = get_missing_tips(tree,leaf_cache,wgd_tips_dict,wgd_node_in_this_tree,ils,wgd_sis_dict)
+        gfe_node_in_this_tree = gene_loss_per_tree[tree_name]["gfe_node_in_this_tree"]
+        missing_tips,gfe_node_output = get_missing_tips(tree,leaf_cache,gfe_tips_dict,gfe_node_in_this_tree,ils,gfe_sis_dict)
         gene_loss_nodes,gene_loss_tips = map_gene_loss(missing_tips,sp_tree_leaf_cache)
         gene_loss_per_tree[tree_name]["gene_loss_nodes"] = gene_loss_nodes
         gene_loss_per_tree[tree_name]["gene_loss_tips"] = gene_loss_tips
-        gene_loss_per_tree[tree_name]["wgd_node_output"] = wgd_node_output
+        gene_loss_per_tree[tree_name]["gfe_node_output"] = gfe_node_output
 
         for l in gene_loss_nodes:
             for node in l:
                 gene_loss_node_counts[node] += 1
     
     with open(output_folder + "gene_loss_counts.tsv","w") as f:
-        f.write("tree\tdupl_clade_count\twgd_node\tgene_loss_nodes\tgene_loss_tips\n")
+        f.write("tree\tdupl_clade_count\tgfe_node\tgene_loss_nodes\tgene_loss_tips\n")
         for tree_name in gene_loss_per_tree:
             data = gene_loss_per_tree[tree_name]
-            for i in range(len(data["wgd_node_output"])):
+            for i in range(len(data["gfe_node_output"])):
                 f.write(
                     tree_name + "\t" +
                     str(i+1) + "\t" +
-                    str(data["wgd_node_output"][i]) + "\t" +
+                    str(data["gfe_node_output"][i]) + "\t" +
                     ",".join(data["gene_loss_nodes"][i]) + "\t" +
                     ",".join(data["gene_loss_tips"][i]) + "\n"
                 )

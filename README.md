@@ -10,21 +10,25 @@
   - [Dependency](#dependency)
 - [Tutorial](#tutorial)
   - [Example workflows](#example-workflows)
-    - [1. *Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with WGDs](#1-main-workflow---reducing-gene-tree-discordance-created-from-erroneous-orthology-inference-associated-with-wgds)
-    - [2. Exploring gene duplications and gene copy losses after WGD](#2-exploring-gene-duplications-and-gene-copy-losses-after-wgd)
+    - [1. *Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with large-scale GFEs](#1-main-workflow---reducing-gene-tree-discordance-created-from-erroneous-orthology-inference-associated-with-large-scale-gfes)
+    - [2. Exploring gene duplications and gene copy losses after large-scale GFE](#2-exploring-gene-duplications-and-gene-copy-losses-after-large-scale-gfe)
     - [3. Simple orthology inference](#3-simple-orthology-inference)
+- [Citation](#citation)
 - [References](#references)
 
 
 # Overview
-`h2o` is an ancient-whole-genome-duplication-aware homolog to ortholog trees command-line tool, for plant phylogenomics. It can infer orthology from homologous phylogenetic trees, calculate gene duplication counts, and most importantly, **reduce erroneous orthology inference in clades with putative ancient whole genome duplications (WGD)**. Ancient WGDs tend to associate with high levels of gene tree discordance, and `h2o` is designed to reduce the discordance created from erroneous orthology inference associated with WGDs.
+`h2o` is a large-scale-gene-family-expansion-aware homolog to ortholog trees command-line tool, for plant phylogenomics. Large-scale gene family expansions (GFE) include whole-genome duplications, segmental duplications, etc. The tool can infer orthology from homologous phylogenetic trees, calculate gene duplication counts, and most importantly, **reduce erroneous orthology inference in clades with large-scale GFEs**. Large-scale GFEs tend to associate with high levels of gene tree discordance, and `h2o` is designed to reduce the discordance created from erroneous orthology inference associated with GFEs.
 
-The publication of `h2o` is still in prep.
+`h2o` is easy to install with no dependencies and only takes a few minutes to process tens of thousands of trees with > 50 tips. It has the functionality of both Yang and Smith (2014) and [phyparts](https://bitbucket.org/blackrim/phyparts/src/master/) duplication command, enable orthology inference and gene duplication mapping within one software. It also outputs a list of paralog pairs that were duplicated at each node in a consensus "species" tree, which can be used to identify large-scale GFE events with highlighted Ks distributions.
+
+The study introducing `h2o` is submitted for peer review.
 
 # Installation
 Installation should work the same way on macOS, Linux, and Windows. You can either install with PyPI or from the source.
 
 ## Install the most recent release with PyPI (not yet available)
+This option will be available after the study is accepted for publication.
 
 ```console
 pip install h2o-phy
@@ -58,36 +62,41 @@ This package only requires Python version >= 3.8 to run, and no extra Python lib
 
 ## Example workflows
 
-### 1. *Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with WGDs
+### 1. *Main workflow* - reducing gene tree discordance created from erroneous orthology inference associated with large-scale GFEs
 
-**User scenario**: I have a plant phylogenomic dataset with known WGD event(s), and these events are correlated with gene tree discordance. It is difficult to resolve the relationships right after WGD events, and I would like to explore alternative relationships.
+**User scenario**: I have a plant phylogenomic dataset either with known large-scale GFE event(s) or potentially have them, and these events are correlated with gene tree discordance. It is difficult to resolve the relationships right after GFE events, and I would like to explore alternative relationships.
 
-`h2o` employs two approaches to reduce gene tree conflicts induced by WGDs:
+`h2o` employs two approaches to reduce gene tree conflicts induced by large-scale GFEs:
 1. Remove taxa that no longer retain both gene copies generated from gene duplications - modified trees are subsequently referred to as <u>*pruned*</u>
-2. Select homolog trees that show the gene duplication from WGD, and only use ortholog trees from these homologs for species tree inference - selected ortholog trees are subsequently referred to as <u>*WGD*</u> trees
+2. Select homolog trees that show the gene duplication from large-scale GFE, and only use ortholog trees from these homologs for species tree inference - selected ortholog trees are subsequently referred to as <u>*GFE*</u> trees
 
 ![drawio](tutorials/main_workflow.drawio.svg)
+
+`h2o map_dupl` not only maps gene duplications but also outputs a list of paralog pairs that were duplicated at specific nodes and can be used to plot highlighted Ks distributions. Ks calculations are not included in `h2o` but there are many existing scripts and tools that can do it.
 
 This workflow will produce 4 different sets of ortholog trees (purple box) as in the table below. **Both approaches to reduce gene tree conflict remove a lot of data from the trees.** We highly recommend users compare the consensus "species" tree produced from each set of orthologs and the gene tree conflict results to select the best supported consensus tree inferred from your dataset, as shown in the flowchart below. By <u>*more support*</u>, we mean less gene tree discordance. **Nodes with high levels of gene tree discordance can still have an ASTRAL posterior probability of 1**. The steps enclosed by dashed lines are optional.
 
 |  | unpruned |  pruned |
 |------|---|---|
-| No WGD selection | Ortholog Trees | Pruned Ortholog Trees |
-| WGD | WGD Ortholog Trees | WGD Pruned Ortholog Trees |
+| No GFE selection | Ortholog Trees | Pruned Ortholog Trees |
+| GFE | GFE Ortholog Trees | Pruned x GFE Ortholog Trees |
 
-The purpose is to explore a better hypothesis for the relationships after WGD events. While `h2o` removes data from the trees and reduces gene tree conflict, it can cause more nested relationships to be less supported. 
+The purpose is to explore a better hypothesis for the relationships after large-scale GFE events. While `h2o` removes data from the trees and reduces gene tree conflict, it can cause more nested relationships to be less supported. 
 
-**In your "best supported consensus tree", if you found more support in the relationships right after WGD events but less support in more nested relationships, please proceed with the optional steps. Subcommand `h2o constraint` can easily extract a constraint tree (for the relationships right after WGD events) from a consensus tree, and users can use the constraint tree with the full ortholog dataset to produce a constrained consensus tree. Then the "best consensus tree hypothesis" will contain the better supported relationships for both the relationships right after WGD and also more nested relationships.*
+**In your "best supported consensus tree", if you found more support in the relationships right after large-scale GFE events but less support in more nested relationships, please proceed with the optional steps. Subcommand `h2o constraint` can easily extract a constraint tree (for the relationships right after large-scale GFE events) from a consensus tree, and users can use the constraint tree with the full ortholog dataset to produce a constrained consensus tree. Then the "best consensus tree hypothesis" will contain the better supported relationships for both the relationships right after large-scale GFE and also more nested relationships.*
 
 ![drawio](tutorials/main_workflow2.drawio.svg)
 
 Details of the subcommands and example external software mentioned are in this [tutorial](tutorials/tutorial.md).
 
-### 2. Exploring gene duplications and gene copy losses after WGD
-
-**User scenario**: I would like to explore the patterns of gene duplications in my plant phylogenomic dataset and gene copy losses after putative ancient WGD events.
-
 > [!TIP]
+> In the study that introduces `h2o`, we demonstrated that Pruned x GFE Ortholog Trees maybe have the least amount of gene tree conflict associated with large-scale GFEs, although some distant relationships might be less supported due to the reduction of data.
+
+### 2. Exploring gene duplications and gene copy losses after large-scale GFE
+
+**User scenario**: I would like to explore the patterns of gene duplications in my plant phylogenomic dataset and gene copy losses after large-scale GFE events.
+
+> [!NOTE]
 > The consensus tree topology is going to affect the counts. If you are exploring different phylogenetic hypotheses with the main workflow, you may want to use the best-supported topology here.
 
 ![drawio](tutorials/dup_workflow.drawio.svg)
@@ -101,6 +110,12 @@ Details of the subcommands are in this [tutorial](tutorials/tutorial.md).
 This workflow is the first step of the main workflow. Although `infer_ortho` is similar to ortholog inference methods in Yang and Smith (2014), it is not the same as any of the 4 methods. `h2o infer_ortho` requires monophyletic outgroups in the tree and does not keep any tree without outgroups.
 
 ![drawio](tutorials/ortho_workflow.drawio.svg)
+
+# Citation
+
+If you have used `h2o` in your work, please cite:
+
+Feng, K., Gaynor, M. L., and Smith, S. A. Improving detection in large-scale gene family expansions and associated phylogenomic inferences in Ericales and Caryophyllales. *In review*.
 
 # References
 

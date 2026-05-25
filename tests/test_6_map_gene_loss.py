@@ -24,7 +24,7 @@ def test_parse_arguments(monkeypatch):
     args.func(args)
 
     assert captured_args.processed_tree_dir == "tests/test_data/processed_trees"
-    assert captured_args.wgd_nodes == "3"
+    assert captured_args.gfe_nodes == "3"
     assert captured_args.output_directory == "tests/test_data/gene_loss_output"
     assert captured_args.duplication_counts_dir == "tests/test_data/duplication_counts"
     assert captured_args.ils_correction == False
@@ -62,7 +62,7 @@ def test_map_gene_loss():
         processed_tree_dir="tests/test_data/processed_trees",
         output_directory="tests/test_data/other_output/",
         duplication_counts_dir="tests/test_data/other_output/",
-        wgd_nodes="3,1",
+        gfe_nodes="3,1",
         ils_correction=False,
         id2sp_file=None
     )
@@ -83,7 +83,7 @@ def test_map_gene_loss_ils():
         processed_tree_dir="tests/test_data/processed_trees",
         output_directory="tests/test_data/other_output/",
         duplication_counts_dir="tests/test_data/other_output/",
-        wgd_nodes="3,1",
+        gfe_nodes="3,1",
         ils_correction=True,
         id2sp_file=None
     )
