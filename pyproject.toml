@@ -9,9 +9,9 @@ requires-python = ">=3.6"
 authors = [
   {name = "Keyi Feng", email = "fky@umich.edu"}
 ]
-description = "Ancient WGD-aware homolog to ortholog trees command-line tool"
+description = "Large-scale-gene-family-expansion-aware homolog to ortholog trees command-line tool"
 readme = "README.md"
-keywords = ["ancient whole-genome duplication", "WGD", "phylogenetics", "phylogenomics", "gene duplication", "gene tree conflict", "gene tree discordance"]
+keywords = ["large-scale gene family expansion", "ancient whole-genome duplication", "WGD", "phylogenetics", "phylogenomics", "gene duplication", "gene tree conflict", "gene tree discordance"]
 classifiers = [
   "Programming Language :: Python"
 ]

@@ -5,7 +5,7 @@ __all__ = [
     "utils",
     "infer_orthology",
     "map_duplications",
-    "extract_wgd_trees",
+    "extract_gfe_trees",
     "map_gene_loss",
     "bp2pie",
     "extract_constraint_tree",
