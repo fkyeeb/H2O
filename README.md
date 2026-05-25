@@ -6,7 +6,7 @@
 - [Overview](#overview)
 - [Installation](#installation)
   - [Install the most recent release with PyPI (not yet available)](#install-the-most-recent-release-with-pypi-not-yet-available)
-  - [Build and install from the source (github repo not yet public)](#build-and-install-from-the-source-github-repo-not-yet-public)
+  - [Build and install from the source](#build-and-install-from-the-source)
   - [Dependency](#dependency)
 - [Tutorial](#tutorial)
   - [Example workflows](#example-workflows)
@@ -18,7 +18,7 @@
 
 
 # Overview
-`h2o` is a large-scale-gene-family-expansion-aware homolog to ortholog trees command-line tool, for plant phylogenomics. Large-scale gene family expansions (GFE) include whole-genome duplications, segmental duplications, etc. The tool can infer orthology from homologous phylogenetic trees, calculate gene duplication counts, and most importantly, **reduce erroneous orthology inference in clades with large-scale GFEs**. Large-scale GFEs tend to associate with high levels of gene tree discordance, and `h2o` is designed to reduce the discordance created from erroneous orthology inference associated with GFEs.
+`h2o` is a large-scale gene-family-expansion-aware homolog to ortholog trees command-line tool, for plant phylogenomics. Large-scale gene family expansions (GFE) include whole-genome duplications, segmental duplications, etc. The tool can infer orthology from homologous phylogenetic trees, calculate gene duplication counts, and most importantly, **reduce erroneous orthology inference in clades with large-scale GFEs**. Large-scale GFEs tend to associate with high levels of gene tree discordance, and `h2o` is designed to reduce the discordance created from erroneous orthology inference associated with GFEs.
 
 `h2o` is easy to install with no dependencies and only takes a few minutes to process tens of thousands of trees with > 50 tips. It has the functionality of both Yang and Smith (2014) and [phyparts](https://bitbucket.org/blackrim/phyparts/src/master/) duplication command, enable orthology inference and gene duplication mapping within one software. It also outputs a list of paralog pairs that were duplicated at each node in a consensus "species" tree, which can be used to identify large-scale GFE events with highlighted Ks distributions.
 
@@ -34,7 +34,7 @@ This option will be available after the study is accepted for publication.
 pip install h2o-phy
 ```
 
-## Build and install from the source (github repo not yet public)
+## Build and install from the source
 
 `git clone` the repo to your local directory
 ```console
