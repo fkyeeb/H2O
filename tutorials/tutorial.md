@@ -22,9 +22,11 @@
   - [5.3 Output](#53-output)
 - [6. Extracting constraint tree - `h2o constraint`](#6-extracting-constraint-tree---h2o-constraint)
   - [6.1 input](#61-input)
+  - [6.2 How to run](#62-how-to-run)
   - [6.3 Output](#63-output)
 - [7. Remove a list of tips from a lot of trees - `h2o rmtips`](#7-remove-a-list-of-tips-from-a-lot-of-trees---h2o-rmtips)
   - [7.1 input](#71-input)
+  - [7.2 How to run](#72-how-to-run)
   - [7.3 Output](#73-output)
 - [References](#references)
 
@@ -135,15 +137,16 @@ This command requires the *unpruned* `*_rooted_processed.tre` from the previous 
 
 We provided a rooted consensus tree computed from the *unpruned* full Ericales dataset from Carruthers et al. (2024) in `example_data/`. A consensus tree made from the subset dataset can be different from the one  provided. To compute the consensus tree for the example dataset, you can do the following commands, which use two external packages that need to be installed.
 
-First, combine all the ortholog trees in one file, one for the *unpruned* trees, one for the *pruned* ones. The *pruned* consensus tree is not needed for `map_dupl` but it might be of interest to you.
+First, combine all the ortholog trees in one file, one for the *unpruned* trees, one for the *pruned* ones. The *pruned* consensus tree is not needed for `map_dupl` but it might be of interest to you. Ortholog trees have two versions, one is with species names (i.e. without sequence_id), one is with sequence_id. The ones with sequence_id are not suitable for ASTRAL, thus, not included in the ASTRAL input files.
 ```console
-cat processed_trees/unpruned/*_ortho[0-9].tre > ERIC_ASTRAL_in_unpruned.tre
-cat processed_trees/pruned/*_ortho[0-9].tre > ERIC_ASTRAL_in_pruned.tre
+ls processed_trees/unpruned/*_ortho[0-9]*.tre | grep -v '_id\.tre' | xargs cat > other_output/ERIC_ASTRAL_in_unpruned.tre
+ls processed_trees/unpruned/*_ortho[0-9]*.tre | grep -v '_id\.tre' | xargs cat > other_output/ERIC_ASTRAL_in_pruned.tre
 ```
 
 Then computes the consensus tree with [astral4](https://github.com/chaoszhang/ASTER/blob/master/tutorial/astral4.md) and reroots the tree with [phyx](https://github.com/FePhyFoFum/phyx).  `astral4` is the newest version of ASTRAL as this tutorial was written. The old versions should also be fine. We used `-t` to use more threads with `astral4` to make the analyses go faster, but not specified below; you can add `-t` as you see fit for your machine. `phyx` has a lot of useful commands for phylogenetics, highly recommend! `pxrr` is a command within `phyx`.
 
 ```console
+cd other_output/
 astral4 -i ERIC_ASTRAL_in_unpruned.tre -o ERIC_ASTRAL_out_unpruned.tre
 pxrr -t ERIC_ASTRAL_out_unpruned.tre -f ERIC_outgroup.txt -o ERIC_ASTRAL_rooted_unpruned.tre
 ```
@@ -168,7 +171,8 @@ You can also find this information by using `h2o map_dupl -h`
 ### 2.2.2 Running the command with example dataset <!-- omit in toc -->
 
 ```console
-h2o map_dupl -t processed_trees -s ERIC_ASTRAL_rooted_unpruned.tre
+cd ..
+h2o map_dupl -t processed_trees -s other_output/ERIC_ASTRAL_rooted_unpruned.tre
 ```
 > [!TIP]
 > The consensus tree topology affects the count. If you found a better supported consensus tree, then it may be good to run `map_dupl` again with that tree. 
@@ -343,6 +347,8 @@ gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 ## 6.1 input
 This command requires a consensus tree file and a list of nodes or tips to keep in the constraint tree. 
 
+## 6.2 How to run
+
 ### 6.2.1 Command Options <!-- omit in toc -->
 
 | Option | Long Option Name | Required | Description |
@@ -382,6 +388,8 @@ astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.
 ## 7.1 input
 One folder with all the tree files to process.
 
+## 7.2 How to run
+
 ### 7.2.1 Command Options <!-- omit in toc -->
 
 | Option | Long Option Name | Required | Description |
@@ -398,7 +406,7 @@ One folder with all the tree files to process.
 To remove the two tips listed in `tips2rm.txt` (for no reason):
 
 ```console
-h2o rmtips -t ERIC_homolog_subset -od ERIC_homolog_subset_rm -rm tips2rm.txt
+h2o rmtips -t ERIC_homolog_subset -od ERIC_homolog_subset_rm -e .subtree -rm tips2rm.txt
 ```
 
 ## 7.3 Output

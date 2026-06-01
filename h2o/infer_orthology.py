@@ -102,7 +102,7 @@ def locate_outgroup(file_name,tree,outgroup,leaf_cache):
 
     return "Outgroup is polyphyletic, " + file_name + " is skipped.\n",to_root
 
-def corrent_parent(node):
+def correct_parent(node):
     """
     After copying a node, this function makes sure that the children of the copied node has the correct parent.
     """
@@ -156,7 +156,7 @@ def root_tree(file_name,tree,outgroup,leaf_cache):
     dummy.add_child(copy.copy(sis))
 
     # parent is not reassigned for the untouched nodes, correct that
-    [corrent_parent(node) for node in new_root.iternodes() if not node.istip]
+    [correct_parent(node) for node in new_root.iternodes() if not node.istip]
     
     return new_root
 
