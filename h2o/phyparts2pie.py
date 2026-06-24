@@ -12,12 +12,10 @@ def process_hist(hist_file,total_num_trees):
             splt = line.strip().split(",")
             node_number = splt.pop(0).replace("Node","")
             total = int(splt.pop())
-            splt = [float(i) for i in splt]
-            conflict = max(splt)
-            others = sum(splt) - conflict
-            concord = total - conflict - others
+            concord = int(float(splt.pop(0)))
+            conflict = total - concord
             uninformative = total_num_trees - total
-            conflict_data[node_number] = [str(concord),(str(conflict)),str(others),str(uninformative)]
+            conflict_data[node_number] = [str(concord),(str(conflict)),str(uninformative)]
     return conflict_data
 
 def process_node_key(node_key_file):
@@ -34,7 +32,7 @@ def match_node_with_data(tree,conflict_data,node_key):
     pies = {}
     for node_number in conflict_data:
         nums = conflict_data[node_number]
-        pie = "[&pie=" + nums[0] + "," + nums[1] + "," + nums[2] + "," + nums[3] + "]"
+        pie = "[&pie=" + nums[0] + "," + nums[1] + "," + nums[2] + "]"
         pies[node_number] = pie
 
     for node in tree.iternodes():
@@ -58,10 +56,10 @@ def main(args):
     node_key = process_node_key(node_key_file)
 
     with open(output_directory + "phyparts_summary.tsv","w") as file:
-        file.write("node_number\tconcord\tmain_conflict\tother_conflict\tunimformative\n")
+        file.write("node_number\tconcord\tconflict\tunimformative\n")
         for node_number in conflict_data:
             nums = conflict_data[node_number]
-            file.write(node_number + "\t" + nums[0] + "\t" + nums[1] + "\t" + nums[2] + "\t" + nums[3] + "\n")
+            file.write(node_number + "\t" + nums[0] + "\t" + nums[1] + "\t" + nums[2] + "\t" + "\n")
 
     match_node_with_data(consensus_tree,conflict_data,node_key)
     with open(output_directory + "gokstad_pie.tre","w") as out:

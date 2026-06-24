@@ -50,6 +50,6 @@ def test_phyparts2pie():
 
     with open("tests/test_data/other_output/phyparts_summary.tsv","r") as f:
         lines = f.readlines()
-        assert lines[2] == "1	6.0	1.0	0.0	0\n"
+        assert lines[2] == "1\t1\t6\t0\t\n"
     with open("tests/test_data/other_output/gokstad_pie.tre","r") as f:
-        assert f.readline() == "((((A:0.0,B:0.0)[&pie=4.0,2.0,0.0,1]:0.0,C:0.0)[&pie=6.0,1.0,0.0,0]:0.0,D:0.0)[&pie=2.0,2.0,0.0,3]:0.0,E:0.0):0.0;\n"
+        assert f.readline() == "((((A:0.0,B:0.0)[&pie=2,4,1]:0.0,C:0.0)[&pie=1,6,0]:0.0,D:0.0)[&pie=2,2,3]:0.0,E:0.0):0.0;\n"
