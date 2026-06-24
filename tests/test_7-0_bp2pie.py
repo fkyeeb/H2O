@@ -55,7 +55,7 @@ def test_bp2pie():
 
     with open("tests/test_data/other_output/bp_data.tsv","r") as f:
         lines = f.readlines()
-        assert lines[0] == "node_number\tconflict\tconcord\tunsupported\n"
+        assert lines[0] == "node_number\tconflict\tconcord\tuninformative\n"
         assert lines[5] == "5\t1\t3\t4\n"
     with open("tests/test_data/other_output/bp_output.tre","r") as f:
         lines = f.readlines()

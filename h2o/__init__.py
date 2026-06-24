@@ -8,6 +8,7 @@ __all__ = [
     "extract_gfe_trees",
     "map_gene_loss",
     "bp2pie",
+    "phyparts2pie",
     "extract_constraint_tree",
     "rmtips"
 ]

@@ -20,14 +20,18 @@
   - [5.1 Input](#51-input)
   - [5.2 How to run](#52-how-to-run)
   - [5.3 Output](#53-output)
-- [6. Extracting constraint tree - `h2o constraint`](#6-extracting-constraint-tree---h2o-constraint)
-  - [6.1 input](#61-input)
+- [6. Extracting `phyparts` conflict result for plotting - `h2o phyparts2pie`](#6-extracting-phyparts-conflict-result-for-plotting---h2o-phyparts2pie)
+  - [6.1 Input](#61-input)
   - [6.2 How to run](#62-how-to-run)
   - [6.3 Output](#63-output)
-- [7. Remove a list of tips from a lot of trees - `h2o rmtips`](#7-remove-a-list-of-tips-from-a-lot-of-trees---h2o-rmtips)
+- [7. Extracting constraint tree - `h2o constraint`](#7-extracting-constraint-tree---h2o-constraint)
   - [7.1 input](#71-input)
   - [7.2 How to run](#72-how-to-run)
   - [7.3 Output](#73-output)
+- [8. Remove a list of tips from a lot of trees - `h2o rmtips`](#8-remove-a-list-of-tips-from-a-lot-of-trees---h2o-rmtips)
+  - [8.1 input](#81-input)
+  - [8.2 How to run](#82-how-to-run)
+  - [8.3 Output](#83-output)
 - [References](#references)
 
 # Overview
@@ -314,7 +318,7 @@ We also recommend:
 
 **In case users want to plot `bp` results with a different branch length, you can provide a tree with the same topology but different branch length, compared to the tree you ran `bp` with.*
 
-***In `bp` results, unsupported means that the tree provided does not contain information about this specific bipart/relationship in the consensus tree. It is usually due to missing taxa; having a large number of unsupported trees for each node is normal in large genomic datasets. However, as most folks will interpret unsupported as low support at first glance, the default of `bp2pie` does not include unsupported counts for `gokstad` plotting.*
+***In `bp` results, unsupported means that the tree provided does not contain information about this specific bipart/relationship in the consensus tree. It is usually due to missing taxa; having a large number of unsupported/uninformative trees for each node is normal in large genomic datasets. However, as most folks will interpret uninformative as low support at first glance, the default of `bp2pie` does not include uninformative counts for `gokstad` plotting.*
 
 ### 5.2.2 Running the command with example dataset <!-- omit in toc -->
 
@@ -326,9 +330,9 @@ h2o bp2pie -f bp_output_unpruned.txt
 
 Unless specified otherwise, the current directory is the default output folder. If more than one bp output file is provided, the `bp2pie` output will be the sum of the results in all output files, except for `bp_output.tre`. Inside the folder, these new files will be created; if `run_name` is provided, it will be added to the end of the file names before the dot:
 - `bp_output.tre` - Counts for conflict, concordance, and unsupported as node labels on each tree. This is part of `bp` output. We provide it as a way for visualization and data exploration. If more than one bp output file is provided, this file has the raw output of all the files. For example, if two bp output files are provided, there will be 6 trees in this file: conflict tree 1, concord tree 1, unsupported tree 1, conflict tree 2, concord tree 2, unsupported tree 2 respectively.
-- `bp_data.tsv` - Counts for conflict, concordance, and unsupported listed with corresponding node number in the consensus tree. This is for plotting pie charts in the tree with R. The tab-delimited file will look something like this:
+- `bp_data.tsv` - Counts for conflict, concordance, and unsupported/uninformative listed with corresponding node number in the consensus tree. This is for plotting pie charts in the tree with R. The tab-delimited file will look something like this:
 
-  | node_number | conflict | concord | unsupported |
+  | node_number | conflict | concord | uninformative |
   |------|---|---|---|
   | 1 | 1 | 3 | 0 |
   | 2 | 0 | 2 | 2 |
@@ -340,16 +344,67 @@ Unless specified otherwise, the current directory is the default output folder. 
 gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 ```
 *Note that the root node is numbered as "0" and does not have any conflict result.*
+> [!NOTE]
+> You would probably want to change the variable `piecolors` in `src/gokstad_conf.py` to match with what you want for plotting or change it manually in an editor.
 
-# 6. Extracting constraint tree - `h2o constraint`
-`h2o` removes a lot of data from phylogenomic datasets. Although it can lead to a topology with more support for relationships right after large-scale GFEs, it can lead to less support for more embedded clades. To resolve this dilemma, we offer an option in `h2o` to extract part of the topology from a consensus tree to use as a constraint for phylogenetic analysis. For example, if the consensus tree for `Pruned x GFE` ortholog trees has more support for the relationships near the GFE event, you can specifically extract those relationships and use the topology as a constraint and run ASTRAL with all ortholog trees.
+# 6. Extracting `phyparts` conflict result for plotting - `h2o phyparts2pie`
 
-## 6.1 input
-This command requires a consensus tree file and a list of nodes or tips to keep in the constraint tree. 
+A subcommand very similar to `bp2pie` but for [PhyParts](https://bitbucket.org/blackrim/phyparts/src/master/). It digests phyparts output into files that are easy to plot in R or with[`gokstad`](https://git.sr.ht/~hms/gokstad).
+
+## 6.1 Input
+`*.node.key`, `*.hist`, the total number of input gene trees, and the consensus tree file you would like to use for plotting is required. To produce a bp output for the example dataset:
+
+```console
+java -jar target/phyparts-0.0.1-SNAPSHOT-jar-with-dependencies.jar -a 1 -v -d ERIC_homolog_subset -m ERIC_ASTRAL_rooted_unpruned.tre -o out
+```
 
 ## 6.2 How to run
 
 ### 6.2.1 Command Options <!-- omit in toc -->
+
+| Option | Long Option Name | Required | Description |
+|--------|-------------|----------|-------------|
+| `-k` | `--phyparts_node_key_file` | Yes | PhyParts *.node.key file |
+| `-f` | `--phyparts_hist_file` | Yes | PhyParts *.hist file |
+| `-n` | `--total_tree_number` | Yes | Total number of trees (integer) used in the PhyParts run |
+| `-n` | `--consensus_tree_file` | Yes | Consensus tree file for branch length, has to have the same topology and tip names as the tree used to run PhyParts |
+| `-od` | `--output_directory` | No | Output directory, default is the current directory  |
+
+### 6.2.2 Running the command with example dataset <!-- omit in toc -->
+
+```console
+h2o phyparts2pie -k out.node.key -f out.hist -n 111 -n ERIC_ASTRAL_rooted_unpruned.tre
+```
+
+## 6.3 Output
+
+Unless specified otherwise, the current directory is the default output folder.
+
+- `phyparts_summary.tsv` - Counts for concordance, main conflict topology, the rest of conflicting topologies,  and uninformative listed with corresponding node number in the consensus tree. This is for plotting pie charts in the tree with R. The tab-delimited file will look something like this:
+
+  | node_number | concord | main_conflict |  other_conflict | uninformative |
+  |------|---|---|---|---|
+  | 1 | 3 | 1 | 0 | 0 |
+  | 2 | 2 | 1 | 0 | 1 |
+  | 3 | 4 | 0 | 0 | 0 |
+  | ... |
+-  `gokstad_pie.tre` - The input tree for `gokstad` plotting cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
+```console
+gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
+```
+> [!NOTE]
+> You would probably want to change the variable `piecolors` in `src/gokstad_conf.py` to match with what you want for plotting or change it manually in an editor.
+> In results, uninformative means that the tree provided does not contain information about this specific bipart/relationship in the consensus tree. It is usually due to missing taxa; having a large number of uninformative trees for each node is normal in large genomic datasets.
+
+# 7. Extracting constraint tree - `h2o constraint`
+`h2o` removes a lot of data from phylogenomic datasets. Although it can lead to a topology with more support for relationships right after large-scale GFEs, it can lead to less support for more embedded clades. To resolve this dilemma, we offer an option in `h2o` to extract part of the topology from a consensus tree to use as a constraint for phylogenetic analysis. For example, if the consensus tree for `Pruned x GFE` ortholog trees has more support for the relationships near the GFE event, you can specifically extract those relationships and use the topology as a constraint and run ASTRAL with all ortholog trees.
+
+## 7.1 input
+This command requires a consensus tree file and a list of nodes or tips to keep in the constraint tree. 
+
+## 7.2 How to run
+
+### 7.2.1 Command Options <!-- omit in toc -->
 
 | Option | Long Option Name | Required | Description |
 |--------|-------------|----------|-------------|
@@ -364,7 +419,7 @@ This command requires a consensus tree file and a list of nodes or tips to keep 
 
 ****Only the tips listed in this file are going to show up in the constraint tree.*
 
-### 6.2.2 Running the command with example dataset <!-- omit in toc -->
+### 7.2.2 Running the command with example dataset <!-- omit in toc -->
 If the tree that we would like to extract the constraint tree from is `consensus_tree_numbered_pruned_gfe.tre` (provided) and we would like to extract the relationships right after large-scale GFE events, we could:
 
 ```console
@@ -375,22 +430,22 @@ Or extract constraint tree based on a selected list of tips:
 h2o constraint -s consensus_tree_numbered_pruned_gfe.tre -t constraint_tips.txt
 ```
 
-## 6.3 Output
+## 7.3 Output
 Unless specified otherwise, the current directory is the default output folder. Inside the folder, this new file will be created:
 - `constraint_tree.tre` - the constraint tree, example usage with ASTRAL:
 ```console
 astral4 -o ERIC_ASTRAL_out_constraint.tre -c constraint_tree.tre ERIC_ASTRAL_in.tre
 ```
 
-# 7. Remove a list of tips from a lot of trees - `h2o rmtips`
+# 8. Remove a list of tips from a lot of trees - `h2o rmtips`
 [phyx](https://github.com/FePhyFoFum/phyx) has a command `pxrmt` that does similar things but it only removes one instance of the provided taxa from the tree file, which is inconvenient for trees with duplicated tips. Thus, we implemented this subcommand in `h2o` to remove all instances of selected taxa for all tree files in a provided folder.
 
-## 7.1 input
+## 8.1 input
 One folder with all the tree files to process.
 
-## 7.2 How to run
+## 8.2 How to run
 
-### 7.2.1 Command Options <!-- omit in toc -->
+### 8.2.1 Command Options <!-- omit in toc -->
 
 | Option | Long Option Name | Required | Description |
 |--------|-------------|----------|-------------|
@@ -402,14 +457,14 @@ One folder with all the tree files to process.
 | `-m` | `--minimum_taxa` | No | Minimum number of taxa in output tree, default is 5 |
 | `-f` | `--id2sp_file` | No | one sample each line, sample_name`<tab>`species_name. Tips are in this format: `sample_name@sequence_id` |
 
-### 7.2.2 Running the command with example dataset <!-- omit in toc -->
+### 8.2.2 Running the command with example dataset <!-- omit in toc -->
 To remove the two tips listed in `tips2rm.txt` (for no reason):
 
 ```console
 h2o rmtips -t ERIC_homolog_subset -od ERIC_homolog_subset_rm -e .subtree -rm tips2rm.txt
 ```
 
-## 7.3 Output
+## 8.3 Output
 Tree files of the same name (but with selected tips removed or saved) will be written to the output directory.
 
 # References

@@ -69,7 +69,7 @@ def main(args):
     del data["0"]
 
     with open(output_directory + "bp_data" + run_name + ".tsv","w") as file:
-        file.write("node_number\tconflict\tconcord\tunsupported\n")
+        file.write("node_number\tconflict\tconcord\tuninformative\n")
         for node_number in data:
             nums = data[node_number]
             file.write(node_number + "\t" + str(nums[0]) + "\t" + str(nums[1]) + "\t" + str(nums[2]) + "\n")

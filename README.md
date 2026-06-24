@@ -22,7 +22,7 @@
 
 `h2o` is easy to install with no dependencies and only takes a few minutes to process tens of thousands of trees with > 50 tips. It has the functionality of both Yang and Smith (2014) and [phyparts](https://bitbucket.org/blackrim/phyparts/src/master/) duplication command, enable orthology inference and gene duplication mapping within one software. It also outputs a list of paralog pairs that were duplicated at each node in a consensus "species" tree, which can be used to identify large-scale GFE events with highlighted Ks distributions.
 
-`h2o` also includes other helpful subcommands for phylogenomics including `bp2pie` (converting bp conflict results to formats for plotting) and `rmtips` (remove all instances of selected tips from a folder of trees).
+`h2o` also includes other helpful subcommands for phylogenomics including `bp2pie`/`phyparts2pie` (converting bp or phyparts conflict results to formats for plotting) and `rmtips` (remove all instances of selected tips from a folder of trees).
 
 The study introducing `h2o` is submitted for peer review.
 

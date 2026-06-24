@@ -12,6 +12,7 @@ from h2o import (
     map_duplications,
     map_gene_loss,
     bp2pie,
+    phyparts2pie,
     extract_constraint_tree,
     rmtips
 )
@@ -45,6 +46,12 @@ def bp2pie_main(args):
     direct to bp2pie
     """
     bp2pie.main(args)
+
+def phyparts2pie_main(args):
+    """
+    direct to phyparts2pie
+    """
+    phyparts2pie.main(args)
 
 def extract_constraint_tree_main(args):
     """
@@ -118,6 +125,15 @@ def parse_arguments():
     parser_bp2pie.add_argument("-p", "--pie_option", action="store_true", help="Flag to include unsupported counts in the gokstad pie tree")
     parser_bp2pie.add_argument("-n", "--run_name", type=str, help="Name of the run, to be added to output file name, default is empty string")
     parser_bp2pie.set_defaults(func=bp2pie_main)
+
+    # Subcommand: h2o phyparts2pie
+    parser_phyparts2pie = subparsers.add_parser("phyparts2pie", help="Extract phyparts conflict result for R or gokstad plotting")
+    parser_phyparts2pie.add_argument("-k", "--phyparts_node_key_file", type=str, help="PhyParts *.node.key file", required=True)
+    parser_phyparts2pie.add_argument("-f", "--phyparts_hist_file", type=str, help="PhyParts *.hist file", required=True)
+    parser_phyparts2pie.add_argument("-n", "--total_tree_number", type=str, help="Total number of trees (integer) used in the PhyParts run", required=True)
+    parser_phyparts2pie.add_argument("-s", "--consensus_tree_file", type=str, help="Consensus tree file for branch length, has to have the same topology and tip names as the tree used to run PhyParts", required=True)
+    parser_phyparts2pie.add_argument("-od", "--output_directory", type=str, help="Output directory, default is the current directory")
+    parser_phyparts2pie.set_defaults(func=phyparts2pie_main)
 
     # Subcommand: h2o constraint
     parser_extract_constraint_tree = subparsers.add_parser("constraint", help="Extract constraint tree")
