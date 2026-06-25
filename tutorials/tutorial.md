@@ -290,9 +290,25 @@ Unless specified otherwise, `other_output/` is the default output folder. Inside
 
 `h2o` is built to reduce gene tree conflict induced by large-scale GFEs; then, evaluating gene tree conflict throughout the process is important. We used [bellerophon](https://git.sr.ht/~hms/bellerophon) (`bp`) to infer gene tree conflict, and we implemented a subcommand in `h2o` to take `bp` output directly and digest it into files that are easy to plot in R or with[`gokstad`](https://git.sr.ht/~hms/gokstad).
 
-## 5.1 Input
-`bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**. To produce a bp output for the example dataset:
+> [!TIP]
+> We recommend using bellerophon instead of phyparts for conflict, but as users may be more familiar with phyparts,`h2o` has subcommands to deal with both.
 
+## 5.1 Input
+`bp` output file is required. **To produce the appropriate `bp` result file, `-tv` has to be flagged in the command**. 
+
+First, install [bellerophon](https://git.sr.ht/~hms/bellerophon). The instructions on the `bellerophon` link will build a binary called `bp` ([go installation](https://go.dev/doc/install) required). We have some instructions below of how to run `bp` below. 
+
+If you built the binary, you can run it in a local folder as:
+```console
+folder/bp
+```
+Or if you are familiar with shell, you can move `bp` into your `PATH`, and just run:
+```console
+bp
+```
+This should display all the options for the command.
+
+To produce a bp output for the example dataset:
 ```console
 bp -c ERIC_ASTRAL_rooted_unpruned.tre -t ERIC_ASTRAL_in_unpruned.tre -tv > other_output/bp_output_unpruned.txt
 ```
@@ -351,6 +367,9 @@ gokstad -s -d -b -pie gokstad_pie.tre -o gokstad.svg
 
 A subcommand very similar to `bp2pie` but for [PhyParts](https://bitbucket.org/blackrim/phyparts/src/master/). It digests phyparts output into files that are easy to plot in R or with[`gokstad`](https://git.sr.ht/~hms/gokstad).
 
+> [!TIP]
+> We recommend using bellerophon instead of phyparts for conflict, but as users may be more familiar with phyparts,`h2o` has subcommands to deal with both.
+
 ## 6.1 Input
 `*.node.key`, `*.hist`, the total number of input gene trees, and the consensus tree file you would like to use for plotting is required. To produce a bp output for the example dataset:
 
@@ -382,11 +401,11 @@ Unless specified otherwise, the current directory is the default output folder.
 
 - `phyparts_summary.tsv` - Counts for concordance, main conflict topology, the rest of conflicting topologies,  and uninformative listed with corresponding node number in the consensus tree. This is for plotting pie charts in the tree with R. The tab-delimited file will look something like this:
 
-  | node_number | concord | main_conflict |  other_conflict | uninformative |
-  |------|---|---|---|---|
-  | 1 | 3 | 1 | 0 | 0 |
-  | 2 | 2 | 1 | 0 | 1 |
-  | 3 | 4 | 0 | 0 | 0 |
+  | node_number | concord | conflict | uninformative |
+  |------|---|---|---|
+  | 1 | 3 | 1 | 0 |
+  | 2 | 2 | 1 | 1 |
+  | 3 | 4 | 0 | 0 |
   | ... |
 -  `gokstad_pie.tre` - The input tree for `gokstad` plotting cannot be opened with any tree visualizing application, such as figtree. Example usage with `gokstad`:
 ```console
