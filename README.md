@@ -1,4 +1,4 @@
-# H2O  <!-- omit in toc -->
+# <img src="logos/logo_crop.svg" alt="logo" width="60" style="position: relative; top: 15px;"> H2O  <!-- omit in toc -->
 ![version](https://img.shields.io/badge/version-v.0.9-blue)
 [![CI](https://github.com/fkyeeb/H2O/actions/workflows/ci.yml/badge.svg)](https://github.com/fkyeeb/H2O/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/fkyeeb/H2O/graph/badge.svg?token=ZHPI95S70O)](https://codecov.io/gh/fkyeeb/H2O)
